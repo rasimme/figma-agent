@@ -91,6 +91,9 @@ export function createClient(opts = {}) {
       if (json.error) {
         throw new Error(`figma-mcp: RPC error ${json.error.code} — ${json.error.message}`);
       }
+      if (json.id !== undefined && json.id !== id) {
+        throw new Error(`figma-mcp: response id mismatch (expected ${id}, got ${json.id})`);
+      }
       return json.result;
     } finally {
       clearTimeout(timer);
@@ -136,6 +139,9 @@ export function createClient(opts = {}) {
         capabilities: {},
         clientInfo: { name: CLIENT_NAME, version: CLIENT_VERSION },
       });
+      if (!result || typeof result !== 'object') {
+        throw new Error('figma-mcp: initialize failed — server returned no valid result');
+      }
       initialized = true;
       // MCP spec: client must send initialized notification after handshake
       await rpc('notifications/initialized', {}).catch(() => {});
