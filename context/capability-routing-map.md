@@ -78,19 +78,19 @@ This remains deliberately shallow in MVP scope.
 If the request is about the **current** design state only, stay on the direct path.
 
 Examples:
-- “Analysiere diesen Screen”
-- “Zeig mir den Screenshot”
-- “Welche Komponenten sind hier wichtig?”
-- “Welche Variablen nutzt das?”
+- "Analyze this screen"
+- "Show me the screenshot"
+- "Which components matter most here?"
+- "Which variables does this use?"
 
 ### Rule 2 — Future changed state = CC path
 If the request implies a **new or changed** state in Figma, route to CC/ACP.
 
 Examples:
-- “Mach den Hero kompakter”
-- “Erstelle eine Mobile-Variante”
-- “Baue einen neuen Settings-Screen”
-- “Ändere die Karten auf 2 Spalten”
+- "Make the hero section more compact"
+- "Create a mobile variant"
+- "Build a new settings screen"
+- "Change the cards to a 2-column layout"
 
 ### Rule 3 — Mixed request = inspect first, then switch
 If a request contains both analysis and change:
@@ -206,8 +206,8 @@ Good behavior:
 - return result clearly
 
 Example phrasing:
-- “Ich lese mir den aktuellen Figma-Kontext kurz direkt ein.”
-- “Für die Änderung gehe ich jetzt über den CC-Pfad, weil wir dafür in Figma schreiben müssen.”
+- "I'll quickly load the current Figma context directly."
+- "For this change, I'll switch to the CC path because we need to write in Figma."
 
 ---
 

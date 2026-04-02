@@ -1,53 +1,53 @@
 # Figma Remote MCP → OpenClaw Agent
 
-## Zielbild
+## Target State
 
-Ein OpenClaw-Agent soll nicht nur Figma-Dateien lesen, sondern aktiv in Figma arbeiten können:
-- neue Files anlegen
-- Screens / Frames erzeugen
-- bestehende Screens ändern
-- Komponenten aus Libraries suchen und verwenden
-- Variablen / Styles / Tokens pflegen
-- Screenshots / Design-Kontext zurückholen
-- iterativ auf Feedback reagieren
+An OpenClaw agent should not only read Figma files but actively work in Figma:
+- create new files
+- create screens/frames
+- modify existing screens
+- search and use library components
+- manage variables/styles/tokens
+- retrieve screenshots and design context
+- iterate on feedback loops
 
-**Nicht Ziel in Phase 1:** direkte Orchestrierung von Figma Make als eigenständigem Prompt-System; das ist aktuell nicht sauber belegt.
+**Not a Phase 1 goal:** direct orchestration of Figma Make as an independent prompt system. This is not sufficiently validated yet.
 
 ---
 
-## Technische Grundlage
+## Technical Foundation
 
-### Empfohlener Pfad
-Der offizielle **Figma Remote MCP Server** ist die Zielbasis:
+### Recommended path
+The official **Figma Remote MCP Server** is the target foundation:
 - Endpoint: `https://mcp.figma.com/mcp`
 - Auth: OAuth
-- von Figma selbst empfohlen
-- laut offizieller Doku mit der breitesten Feature-Menge
+- Recommended by Figma
+- Broadest documented feature set
 
-### Warum nicht Desktop MCP als Zielarchitektur
-Desktop MCP ist nützlich für lokale Designer-Workflows, aber schlechter als dauerhafte OpenClaw-Basis:
-- Desktop App nötig
-- offiziell nur Windows/macOS
-- Jetson/Linux ungeeignet
-- stärker an lokale Selection/UI gebunden
+### Why Desktop MCP is not the target architecture
+Desktop MCP is useful for local designer workflows, but weaker as a long-term OpenClaw foundation:
+- Requires desktop app
+- Officially Windows/macOS only
+- Not suitable for Jetson/Linux server setup
+- More tightly coupled to local selection/UI behavior
 
-**Fazit:** OpenClaw sollte auf **Remote MCP** zielen, nicht auf Desktop MCP.
+**Conclusion:** OpenClaw should target **Remote MCP**, not Desktop MCP.
 
 ---
 
-## Capability-Matrix
+## Capability Matrix
 
-### A. Was der Agent lesen kann
-- Design-Kontext aus Frames/Layers
-- Variablen / Styles
-- Screenshots
-- Metadaten / Layerstruktur
-- Code Connect Mappings
-- Design-System-Suche
-- FigJam-Diagramme
-- Make-Ressourcen als Kontext
+### A. What the agent can read
+- design context from frames/layers
+- variables/styles
+- screenshots
+- metadata/layer structure
+- Code Connect mappings
+- design-system search
+- FigJam diagrams
+- Make resources as context
 
-Relevante Tools:
+Relevant tools:
 - `get_design_context`
 - `get_variable_defs`
 - `get_metadata`
@@ -56,49 +56,49 @@ Relevante Tools:
 - `get_code_connect_map`
 - `get_figjam`
 
-### B. Was der Agent schreiben kann
-- neue Figma-Dateien erzeugen
-- Seiten / Frames anlegen
-- Komponenten erstellen / ändern
-- Varianten erzeugen
-- Variablen / Token Collections anlegen
-- Styles pflegen
-- Auto Layouts bauen
-- Inhalte in Figma updaten
+### B. What the agent can write
+- create new Figma files
+- create pages/frames
+- create/modify components
+- generate variants
+- create variable/token collections
+- maintain styles
+- build auto-layout structures
+- update canvas content
 
-Relevante Tools:
+Relevant tools:
 - `use_figma`
 - `create_new_file`
 - `search_design_system`
 
-### C. Was wahrscheinlich möglich ist, aber getestet werden muss
-- vollständige Screen-Erzeugung aus Briefing
-- iterative Screen-Überarbeitung
-- Design-System-Pflege über mehrere Schritte
-- Library-Sync-ähnliche Workflows
-- Code↔Design Loops mit Code Connect
+### C. Likely possible but needs validation
+- full screen generation from brief
+- iterative screen revisions
+- multi-step design-system maintenance
+- library-sync-like workflows
+- code↔design loops with Code Connect
 
-### D. Was offen / unklar ist
-- ob Figma Make direkt promptbar ist
-- ob MCP Make nur als Kontextquelle nutzt
-- wie frei `use_figma` in der Praxis wirklich ist
-- wie robust große mehrstufige Schreibvorgänge sind
-- welche Limits / Seat-Beschränkungen in der Praxis relevant werden
+### D. Open / unclear
+- whether Figma Make can be directly orchestrated
+- whether MCP uses Make only as context source
+- how flexible `use_figma` is in real-world complex flows
+- robustness of large multi-step write operations
+- practical impact of limits/seat restrictions
 
 ---
 
-## OpenClaw-Zielarchitektur
+## OpenClaw Target Architecture
 
-### Schicht 1 – Connector
-Ein OpenClaw-Skill oder Wrapper verbindet sich mit dem Figma Remote MCP.
-Aufgaben:
-- MCP-Verbindung
-- OAuth/Auth-Handling
-- Figma-File-/Node-Referenzen verwalten
-- Skills/Tool-Aufrufe bündeln
+### Layer 1 — Connector
+An OpenClaw skill or wrapper connects to Figma Remote MCP.
+Responsibilities:
+- MCP connection
+- OAuth/auth handling
+- file/node reference handling
+- tool call abstraction
 
-### Schicht 2 – Workflow-Abstraktion
-Nicht nur rohe Tools, sondern sinnvolle OpenClaw-Kommandos / Flows:
+### Layer 2 — Workflow abstraction
+Not just raw tools, but meaningful OpenClaw commands/flows:
 - `figma new-file`
 - `figma build-screen`
 - `figma edit-screen`
@@ -108,96 +108,96 @@ Nicht nur rohe Tools, sondern sinnvolle OpenClaw-Kommandos / Flows:
 - `figma screenshot`
 - `figma implement-design`
 
-### Schicht 3 – Agentische Schleife
-1. Briefing / Prompt
-2. Figma-File oder Zielseite bestimmen
-3. Library / Komponenten / Tokens suchen
-4. Inhalte auf Canvas schreiben
-5. Screenshot / Kontext zurückholen
-6. visuelle Prüfung / Review
-7. iterieren
-8. optional Übergabe an Code-Workflow
+### Layer 3 — Agentic loop
+1. brief/prompt
+2. determine target file/page
+3. search library/components/tokens
+4. write content to canvas
+5. retrieve screenshot/context
+6. visual review
+7. iterate
+8. optional handoff to code workflow
 
 ---
 
-## Typische Workflows
+## Typical Workflows
 
-### Workflow A — Neuer Screen
-- neues File oder neue Page
-- vorhandene Komponenten suchen
-- Screen zusammensetzen
-- Screenshot ziehen
-- Review / nächste Iteration
+### Workflow A — New screen
+- create new file or page
+- search existing components
+- assemble screen
+- capture screenshot
+- review / next iteration
 
-### Workflow B — Bestehenden Screen ändern
-- Ziel-Frame per URL/Node-ID referenzieren
-- Struktur / Tokens / Komponenten lesen
-- gezielt ändern
-- Screenshot ziehen
-- Diff / Review
+### Workflow B — Edit existing screen
+- reference target frame via URL/node ID
+- read structure/tokens/components
+- apply targeted changes
+- capture screenshot
+- diff/review
 
-### Workflow C — Design System Pflege
-- Variables Collections erzeugen
-- Farben / Spacing / Typography sauber strukturieren
-- Komponenten / Varianten aktualisieren
-- Benennung / Konsistenz prüfen
+### Workflow C — Design system maintenance
+- create variable collections
+- structure colors/spacing/typography
+- update components/variants
+- verify naming/consistency
 
-### Workflow D — Design-to-Code
-- Design-Kontext lesen
-- Code Connect Mapping nutzen
-- Code generieren / aktualisieren
-- ggf. zurück in Figma spiegeln
+### Workflow D — Design-to-code
+- read design context
+- use Code Connect mapping
+- generate/update code
+- optionally reflect updates back to Figma
 
 ---
 
-## Unterschiede zu Stitch
+## Differences vs Stitch
 
 ### Stitch
-- prompt-zentrierte Generierung
-- stark für explorative Screen-Erzeugung
-- gut für „einfach mal was bauen“
+- prompt-centric generation
+- strong for exploratory screen creation
+- good for rapid ideation
 
 ### Figma MCP
-- stärker strukturiert
-- näher an echter Produkt-/Designsystem-Arbeit
-- besser für Libraries, Komponenten, Tokens, iterative Team-Workflows und Code/Design-Verzahnung
+- more structured
+- closer to real production design-system workflows
+- better for libraries, components, tokens, iterative team workflows, and code/design integration
 
-**Kurz:** Stitch ist eher „Generierung zuerst“. Figma MCP ist eher „produktives Designsystem-/File-Arbeiten“.
-
----
-
-## Risiken / offene Punkte
-- Auth/OAuth sauber in OpenClaw integrieren
-- prüfen, wie gut unser MCP-Stack HTTP-Remote-MCP trägt
-- seat-/planabhängige Write-Rechte
-- große mehrstufige Änderungen könnten fehleranfällig sein
-- Figma Make selbst bleibt eine Grauzone
-- ClawHub-Skill-Landschaft scheint dafür noch nicht reif → vermutlich Eigenbau
+**Short:** Stitch is generation-first. Figma MCP is production design workflow-first.
 
 ---
 
-## Empfehlung
+## Risks / Open Points
+- clean OAuth integration into OpenClaw
+- validate how well MCP stack handles HTTP Remote MCP at scale
+- seat/plan-dependent write permissions
+- large multi-step changes may be brittle
+- Figma Make remains a gray area
+- ClawHub ecosystem maturity for this use case is still limited
+
+---
+
+## Recommendation
 
 ### Phase 1 — PoC
-Mit Dev Botti:
-1. Remote MCP anbinden
-2. minimalen OpenClaw-Wrapper bauen
-3. drei Kernfälle testen:
+With Dev Botti:
+1. connect Remote MCP
+2. build minimal OpenClaw wrapper
+3. test three core cases:
    - `create_new_file`
    - `search_design_system`
-   - `use_figma` für einen einfachen Screen / Frame / Component-Flow
+   - `use_figma` for a simple screen/frame/component flow
 
-### Phase 2 — Workflow-Skill
-Darauf aufbauend:
+### Phase 2 — Workflow skill
+Then add:
 - `build-screen`
 - `edit-screen`
 - `design-system-sync`
 - `screenshot-review-loop`
 
-### Phase 3 — Make klären
-Separat untersuchen:
-- ob Make direkt orchestrierbar wird
-- oder nur als Ressourcenkontext dient
+### Phase 3 — Clarify Make path
+Investigate separately:
+- whether Make can be orchestrated directly
+- or only used as context source
 
-## Entscheidungsfazit
-Wenn wir das ernsthaft für OpenClaw bauen wollen, sollten wir auf den **offiziellen Remote Figma MCP** zielen, nicht auf eine Jetson-lokale Desktop-App-Lösung.
+## Decision Summary
+If this is a serious OpenClaw integration, target the **official Remote Figma MCP**, not a Jetson-local desktop-app approach.

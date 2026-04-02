@@ -6,158 +6,146 @@
 
 ## Goal
 
-Prüfen, dokumentieren und umsetzen, wie der offizielle **Figma Remote MCP** in einen OpenClaw-Agenten integriert werden kann — inklusive Lesen, Schreiben, Design-System-Nutzung und iterativer Agent-Workflows.
+Integrate Figma's official **Remote MCP** into OpenClaw as a unified skill — covering read, write, design-system access, and iterative agent workflows.
 
 ## Scope
-- **Dazu gehört:** Offizielle Figma-MCP-Recherche, Capability-Matrix, OpenClaw-Architektur, Auth-/MCP-Anbindung, PoC-Plan, möglicher Skill/Wrapper
-- **Nicht dazu:** Produktionsreife Browser-Hacks, inoffizielle Figma-Automation als Primärpfad, generische Figma-Designarbeit ohne MCP-Bezug
-- **Appetite:** Mittel bis groß — erst saubere Architektur und PoC, dann Umsetzung
+- **In scope:** Official Figma MCP research, capability matrix, OpenClaw architecture, auth/MCP integration, PoC, publishable skill/wrapper
+- **Out of scope:** Production-grade browser hacks, unofficial Figma automation as primary path, generic Figma design work without MCP context
+- **Appetite:** Medium to large — clean architecture and PoC first, then implementation
 
 ## Background
-Figma MCP hat sich stark weiterentwickelt: neben Read-Zugriff gibt es inzwischen offizielle Write-to-Canvas-Funktionen. Für OpenClaw ist das potenziell die Grundlage für einen echten Figma-Agenten, ähnlich zur Stitch-Integration — aber näher an realen Figma-Dateien, Libraries, Variablen und Komponenten.
+Figma MCP has evolved significantly: beyond read access, there are now official write-to-canvas capabilities. For OpenClaw, this is potentially the foundation for a real Figma agent — closer to actual Figma files, libraries, variables, and components than the Stitch integration.
 
-Zentrale offene Frage: Wie gut eignet sich der **offizielle Remote MCP** als stabile Basis für einen OpenClaw-Agenten, und wo liegen die Grenzen gegenüber Figma Make, Desktop MCP oder Community-Lösungen wie figma-console-mcp?
+Central question: How well does the **official Remote MCP** serve as a stable foundation for an OpenClaw agent, and where are the limits compared to Figma Make, Desktop MCP, or community solutions?
 
 ## Architecture
 
-**Stand 2026-04-02: Entschieden — Hybrid CC Token Bootstrap**
+**Decided 2026-04-02: Hybrid CC Token Bootstrap**
 
-Siehe `context/architecture-proposal.md` für die vollständige Einordnung.
+See `context/architecture-proposal.md` for the full evaluation.
 
-**Read-Operationen:** OpenClaw direkt, sobald der Bearer-Header in `openclaw.json` gesetzt ist und die Figma-Tools im jeweiligen Agenten erlaubt sind.
-**Write-Operationen:** CC-Session mit Figma-MCP / offiziellen Figma-Skills.
+- **Read operations:** Direct via zero-dep wrapper (`scripts/figma-mcp.mjs`) using Bearer token in `openclaw.json`.
+- **Write operations:** Claude Code session with Figma MCP / official Figma skills via ACP.
 
-Der aktuell gewählte Bootstrap-Pfad nutzt den vorhandenen Claude-Code-OAuth-Token als pragmatische Grundlage, statt auf einen ungeklärten Custom-DCR-Flow zu setzen.
+The bootstrap path extracts an existing OAuth token from a supported MCP client (Claude Code, Codex, Windsurf) rather than relying on unproven custom DCR.
+
+### Delivery Sequence
+- **Phase A — Foundation / Enablement (T-013):** Token bootstrap, skill structure, base SKILL.md, technical E2E proof
+- **Phase B — Hybrid MVP / Productization (T-014):** Capability map, routing, direct read layer, write via CC/ACP, review loop, packaging
+
+T-013 makes the stack reliable. T-014 makes it a product.
 
 ## Single Source of Truth
 
 **Canonical source:** `~/repos/figma-agent`
 
-Workspace path `~/.openclaw/workspace/projects/figma-agent` should only be a symlink to the repo.
-Do not maintain two independent copies.
+Workspace path `~/.openclaw/workspace/projects/figma-agent` should only be a symlink to the repo. Do not maintain two independent copies.
 
 ## Project Files
-- `context/architecture-proposal.md` — Architektur-Entscheidung mit allen 4 Optionen, Begründung, PoC-Erkenntnisse
-- `context/research-figma-mcp-capabilities.md` — Capability-Matrix: 16 Tools, Rate Limits, Limitations
-- `context/capability-routing-map.md` — Kanonische Routing-Regeln für Read / Write / Hybrid Requests
-- `context/direct-read-layer-mvp.md` — konkreter MVP-Scope für den direkten Read-Layer
-- `context/write-via-cc-mvp.md` — konkreter MVP-Scope für den Write-via-CC/ACP Pfad
-- `context/review-loop-mvp.md` — schlanker MVP-Review-Loop nach Write-Ergebnissen
-- `context/figma-remote-mcp-architecture.md` — Initiale Architektur-Exploration (historisch, superseded)
+- `context/architecture-proposal.md` — Architecture decision with all options, rationale, PoC findings
+- `context/research-figma-mcp-capabilities.md` — Capability matrix: 17 tools, rate limits, limitations
+- `context/capability-routing-map.md` — Canonical routing rules for read / write / hybrid requests
+- `context/direct-read-layer-mvp.md` — Concrete MVP scope for the direct read layer
+- `context/write-via-cc-mvp.md` — Concrete MVP scope for the write-via-CC/ACP path
+- `context/review-loop-mvp.md` — Lightweight MVP review loop after write results
+- `context/clawhub-positioning.md` — ClawHub positioning, safe claims, pre-publish checklist
+- `context/figma-remote-mcp-architecture.md` — Initial architecture exploration (historical, superseded)
 
 ## Current Status
-**Struktur bereinigt: T-013 = Foundation, T-014 = Produkt-MVP.**
 
-### Aktuelle Richtung
-- `figma-agent` wird als **einheitliches Produkt** gebaut.
-- **Read / Inspect** soll direkt laufen.
-- **Write / Edit / Create** soll über **CC/ACP** laufen.
-- Der Nutzer sieht **einen Skill**, intern gibt es getrennte Ausführungspfade.
+**Structure clarified: T-013 = Foundation, T-014 = Product MVP.**
 
-### Sauberer Schnitt
-- **T-013 = Foundation / Enablement**
-  - Bootstrap
-  - Skill-Struktur
-  - Basis-Skill-Dokumentation
-  - technischer E2E-Nachweis
-- **T-014 = Hybrid MVP / Productization**
-  - Capability Map
-  - Routing-Regeln
-  - Read-Layer
-  - Write-via-CC
-  - Review-Loop
-  - klare Außenkommunikation / Packaging
+### Direction
+- `figma-agent` is built as a **unified product**.
+- **Read / Inspect** runs directly via `scripts/figma-mcp.mjs`.
+- **Write / Edit / Create** runs through **CC/ACP**.
+- The user sees **one skill**; internally there are separate execution paths.
 
-### Task-Stand
-- T-001/T-002: Research + Auth-Exploration ✅ done
-- T-003–T-006: Archived (alter PoC-Plan)
-- T-007–T-012: Archived (superseded oder aufgegeben)
-- **T-013: Foundation — Token Bootstrap + Skill Enablement** ▶ in-progress
-  - T-013-1: Bootstrap Script (auth.mjs) — review
+### Task Status
+- T-001/T-002: Research + auth exploration — done
+- T-003–T-012: Archived (old PoC plans, superseded approaches)
+- **T-013: Foundation — Token Bootstrap + Skill Enablement** — in-progress
+  - T-013-1: Bootstrap script (auth.mjs) — review
   - T-013-2: SKILL.md — review
-  - T-013-3: Skill-Struktur & Clawhub-Metadaten — review
-  - T-013-4: E2E Test — open
-- **T-014: Hybrid MVP — Productization** ▶ review
-  - T-014-1: Capability Map + Routing Rules — review
-  - T-014-2: Direct Read Layer MVP — review
+  - T-013-3: Skill structure & ClawHub metadata — review
+  - T-013-4: E2E test — open
+- **T-014: Hybrid MVP — Productization** — review
+  - T-014-1: Capability map + routing rules — review
+  - T-014-2: Direct read layer MVP — review
   - T-014-3: Write via CC/ACP MVP — review
-  - T-014-4: Review Loop MVP — review
-  - T-014-5: Skill Packaging + ClawHub Positioning — review
+  - T-014-4: Review loop MVP — review
+  - T-014-5: Skill packaging + ClawHub positioning — review
 
-### Nächster Schritt
-Kompakter Gesamt-Review auf Produktversprechen, Skill-Readiness und ClawHub-Risiken. Danach Priorisierung der eigentlichen Umsetzungsarbeit auf dem privaten Repo.
+### Next Step
+Finish T-013-4 (E2E technical proof), then lock implementation order for T-014.
 
 ## Session Log
 
-### 2026-04-01 — Projekt angelegt
-- **Was wurde gemacht:** Projekt angelegt, initiale Architektur-Exploration.
-- **Offene Fragen:** Auth-Pfad, CC als Bridge vs. direkt.
+### 2026-04-01 — Project created
+- **Done:** Project created, initial architecture exploration.
+- **Open questions:** Auth path, CC as bridge vs. direct.
 
-### 2026-04-01 — Research & PoC, Architektur-Entscheidung
-- **Was wurde gemacht:**
-  - Figma Remote MCP vollständig recherchiert: offizielle Tool-Landschaft, Rate Limits, Auth-Requirements
-  - OpenClaw auf 2026.4.1 aktualisiert — nativer MCP HTTP-Transport bestätigt
-  - mcporter OAuth getestet: initial wirkte es wie ein möglicher alternativer Auth-Pfad, später zeigte sich aber, dass der Flow den entscheidenden Redirect-/Auth-Schritt nicht sauber erreicht
-  - CC ACP Sessions getestet: `--print` Mode lädt keine MCP-Server → CC als Bridge für diesen Pfad nicht belastbar
-  - Custom Figma OAuth App geprüft: REST-Scopes sind nicht der MCP-Auth-Pfad
-  - Eigene Raw-DCR-Tests sowie ein sauberer MCP-SDK-Test durchgeführt → beide enden aktuell bei `403 Forbidden`
-- **Korrigierte Einschätzung:** Native OpenClaw-MCP-Anbindung bleibt technisch sinnvoll, aber der Self-Contained-Custom-Client-Pfad ist aktuell nicht bestätigt. Supported Clients bleiben der einzige klar belastbare Referenzpfad.
-- **Tasks:** T-001/T-002 done, T-003–T-006 archived, T-007–T-012 neu angelegt
-- **Offene Fragen:** Unterstützt Figma Custom MCP Clients offiziell? Falls ja: unter welchen Bedingungen / Freigaben? Wie sieht ein sauberer Support-Pfad für OpenClaw aus?
+### 2026-04-01 — Research & PoC, architecture decision
+- **Done:**
+  - Figma Remote MCP fully researched: official tool landscape, rate limits, auth requirements
+  - OpenClaw updated to 2026.4.1 — native MCP HTTP transport confirmed
+  - mcporter OAuth tested: initial impression of a viable alt path; later showed it doesn't cleanly reach the redirect/auth step
+  - CC ACP sessions tested: `--print` mode does not load MCP servers → CC as bridge unreliable for this path
+  - Custom Figma OAuth app checked: REST scopes ≠ MCP auth path
+  - Raw DCR tests + clean MCP SDK test → both end at `403 Forbidden`
+- **Corrected assessment:** Native OpenClaw MCP remains technically sound, but self-contained custom-client path is unconfirmed. Supported clients remain the only proven reference path.
+- **Tasks:** T-001/T-002 done, T-003–T-006 archived, T-007–T-012 created
+- **Open questions:** Does Figma officially support custom MCP clients? If so, under what conditions?
 
-### 2026-04-01 — Dokumentations-Update nach Auth-/DCR-Tests
-- **Was wurde gemacht:**
-  - Offizielle Doku von praktischen Beobachtungen getrennt dokumentiert
-  - Festgehalten, dass Remote MCP offiziell read + write unterstützt
-  - Festgehalten, dass dokumentierte Clients funktionieren, während eigene Custom-Client-DCR-Tests aktuell auf `403 Forbidden` laufen
-  - Vorbereitung für Gespräch mit Figma Vertrieb / Ansprechpartner: gezielte Frage nach Support bzw. Freigabe für Custom MCP Clients
-- **Nächster externer Klärungspunkt:** Morgen im Gespräch mit Figma gezielt nach **Support-/Freigabemodell für Custom MCP Clients** fragen.
+### 2026-04-01 — Documentation update after auth/DCR tests
+- **Done:** Separated official documentation from practical observations. Prepared targeted question for Figma contact about custom MCP client support.
 
-### 2026-04-01 — Projekt vorerst geschlossen
-- **Was wurde gemacht:** Forschungsstand bereinigt und in PROJECT.md sowie den Kontextdokumenten sauber festgehalten.
-- **Stand:** OpenClaw-seitig ist nativer HTTP-MCP-Support vorhanden; ungeklärt bleibt die offizielle Unterstützung/Freigabe für Custom MCP Clients bei Figma.
+### 2026-04-02 — Project reopened, architecture decided
+- **Done:**
+  - Figma MCP via CC verified: all 17 tools available, Simeon authenticated
+  - CC OAuth token found in `~/.claude/.credentials.json` → bootstrap approach confirmed
+  - Architecture decision: **CC Token Bootstrap (Hybrid)**
+  - Old tasks T-007–T-012 archived
+  - T-013 created with spec + 4 subtasks
+  - `architecture-proposal.md` fully rewritten
+- **Next:** T-013-1 implementation
 
-### 2026-04-02 — T-013 Foundation umgesetzt und bereinigt
+### 2026-04-02 — T-013 Foundation implemented
+- **Done:**
+  - T-013-1: Bootstrap/auth path established as technical foundation
+  - Bearer header set in `openclaw.json`
+  - T-013-2: SKILL.md created — hybrid logic, read/write split, routing rules, capability groups
+  - T-013-3: Skill structure created — `references/`, `.clawhubignore`, `package.json` corrected
+- **Result:** T-013 functionally complete as Foundation / Enablement.
 
-- **Was wurde gemacht:**
-  - T-013-1: Bootstrap-/Auth-Pfad als technische Foundation festgehalten; historisches `auth.mjs` bleibt als Research-Artefakt, aber der belastbare Weg ist der pragmatische Bootstrap über vorhandenen CC-Kontext
-  - Bearer-Header in `openclaw.json` ist gesetzt
-  - T-013-2: `SKILL.md` erstellt — Hybrid-Logik, Read/Write-Split, Routing-Regeln, Capability-Gruppen, MVP-Flow
-  - T-013-3: Skill-Struktur angelegt / bereinigt — `references/figma-api.md`, `.clawhubignore`, `package.json` Beschreibung korrigiert
-  - T-013-4: Foundation-E2E als technischer Stand zusammengeführt: Bootstrap + Skill-Struktur + Dokumentation bilden jetzt eine konsistente Basis für den nächsten Produkt-Schritt
-- **Ergebnis:** T-013 ist funktional als **Foundation / Enablement** abgeschlossen; der nächste sinnvolle Move liegt jetzt in T-014.
+### 2026-04-02 — Specify for Hybrid MVP completed
+- **Done:**
+  - Product decision: unified Hybrid MVP for figma-agent
+  - Specify flow used to sharpen product behavior, capability groups, MVP boundaries
+  - Transparency rule defined: reads quiet, writes explicit about CC path
+  - T-014 created with 5 subtasks + spec
+  - Task split clarified: T-013 = Foundation, T-014 = Productization
+  - Context docs created: capability-routing-map, direct-read-layer-mvp, write-via-cc-mvp, review-loop-mvp, clawhub-positioning
 
-### 2026-04-02 — Review 1 verarbeitet, T-014-1 bis T-014-3 geschärft
-- **Was wurde gemacht:**
-  - externer Architektur-/Produkt-Review auf Foundation + Routing-Logik ausgewertet
-  - mechanischer Write-via-CC Ablauf explizit dokumentiert
-  - 401-/Token-Fehlerverhalten ergänzt
-  - Read-Budget / Rate-Limit Verhalten als Nutzerregel ergänzt
-  - Namespace-Unterschied (`figma__*` vs `mcp__figma__*`) dokumentiert
-  - `get_context_for_code_connect` in die Read-Routing-Definition aufgenommen
-  - `context/direct-read-layer-mvp.md` angelegt
-  - `context/write-via-cc-mvp.md` angelegt
-  - T-014-1 und T-014-2 in Review überführt, T-014-3 auf MVP-Niveau konkretisiert
-- **Nächster Schritt:** T-014-4 beginnen (Review Loop MVP).
+### 2026-04-02 — Repo established as SSOT
+- **Done:**
+  - `~/repos/figma-agent` set as canonical source
+  - Workspace symlinked to repo
+  - Private GitHub repo pushed
+  - Overall review completed: documentation side ready, next is implementation
 
-### 2026-04-02 — Projekt wieder aktiv, Architektur entschieden
-- **Was wurde gemacht:**
-  - Figma MCP via CC verifiziert: `✓ Connected`, alle 17 Tools verfügbar, Simeon authentifiziert
-  - CC-OAuth-Token in `~/.claude/.credentials.json` gefunden → Bootstrap-Ansatz als gangbarer Weg bestätigt
-  - Architektur-Entscheidung: **CC Token Bootstrap (Hybrid)** — DCR-Problem umgangen
-  - Alte Tasks T-007–T-012 archiviert (DCR/PKCE + mcporter Ansätze aufgegeben)
-  - T-013 angelegt mit Spec + 4 Subtasks
-  - `architecture-proposal.md` vollständig überarbeitet
-- **Nächster Schritt:** T-013-1 implementieren (Bootstrap-Script)
+### 2026-04-02 — Zero-dep MCP wrapper built
+- **Done:**
+  - `scripts/figma-mcp.mjs` — zero-dependency Figma MCP client (~191 LOC)
+  - JSON-RPC 2.0 over HTTP POST, SSE response parsing, PKCE-ready
+  - All 4 tests passing: whoami, listTools, get_metadata, get_screenshot
+  - GPT-5.4 review: 10 findings, 8 fixed in two commits
+  - mcporter no longer needed — all operations run through own wrapper
 
-### 2026-04-02 — Specify für Hybrid MVP abgeschlossen
-- **Was wurde gemacht:**
-  - Produktentscheidung für den nächsten Schritt präzisiert: nicht nur technischer Bootstrap, sondern ein echter **Hybrid MVP** für `figma-agent`
-  - Specify-Flow genutzt, um Produktverhalten, Capability-Gruppen und MVP-Grenzen zu schärfen
-  - Festgelegt: **Read direkt, Write über CC/ACP, einheitliche Skill-UX**
-  - Transparenz-Regel festgelegt: Reads eher still, Writes/CC klar kommunizieren
-  - Neuer Parent-Task **T-014 — Hybrid MVP für figma-agent** angelegt, inkl. 5 Subtasks
-  - Neues Spec angelegt: `specs/T-014-figma-agent-hybrid-mvp.md`
-  - Anschließend Task-Schnitt bereinigt: **T-013 bleibt Foundation**, **T-014 ist die nachgelagerte Produktisierung**
-  - Foundation abgeschlossen und erste Productization-Arbeit gestartet: `context/capability-routing-map.md` angelegt
-- **Nächster Schritt:** T-014-1 finalisieren und dann ersten externen Review-Punkt ansetzen.
+### 2026-04-03 — Multi-client bootstrap + token refresh
+- **Done:**
+  - `scripts/bootstrap-token.mjs` — scans CC, Codex, Windsurf for Figma tokens
+  - Token refresh via Figma OAuth metadata endpoint working
+  - `--dry-run` and `--refresh` flags
+  - Full E2E test: bootstrap → refresh → wrapper → all 4 Figma MCP calls passing
+  - Prerequisite model finalized: one-time connection via supported client (CC, Codex, Cursor, VS Code, Windsurf), then bootstrap script handles the rest

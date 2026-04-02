@@ -1,180 +1,154 @@
 # Research: Figma MCP Capabilities & Landscape
 
-**Datum:** 2026-04-01
-**Quelle:** Offizielle Figma Developer Docs, Figma Forum, Community-Projekte
+**Date:** 2026-04-01
+**Source:** Official Figma Developer Docs, Figma Forum, community projects
 
 ---
 
-## 1. Offizielle Figma Remote MCP — Tool-Inventar
+## 1. Official Figma Remote MCP — Tool Inventory
 
 Endpoint: `https://mcp.figma.com/mcp`
 
 ### Read Tools
-| Tool | Beschreibung | File-Typen |
-|------|-------------|------------|
-| `get_design_context` | Design-Kontext für Layer/Selection — Output Default: React + Tailwind, konfigurierbar | Design, Make |
-| `get_variable_defs` | Variablen und Styles einer Selection (Farben, Spacing, Typography) | Design |
-| `get_code_connect_map` | Mapping Figma Node-IDs → Code-Komponenten im Codebase | Design |
-| `get_screenshot` | Screenshot einer Selection — empfohlen für Layout-Fidelity | Design, FigJam |
-| `get_metadata` | Sparse XML: Layer IDs, Namen, Typen, Position, Größen — gut für große Designs | Design |
-| `get_figjam` | FigJam-Diagramme als XML mit Screenshots | FigJam |
-| `search_design_system` | Suche über alle verbundenen Libraries: Komponenten, Variablen, Styles | Design |
-| `whoami` | User-Identität, Plans, Seat-Typen (remote only) | — |
+| Tool | Description | File Types |
+|------|------------|------------|
+| `get_design_context` | Design context for layer/selection — default output: React + Tailwind, configurable | Design, Make |
+| `get_variable_defs` | Variables and styles of a selection (colors, spacing, typography) | Design |
+| `get_code_connect_map` | Mapping Figma node IDs → code components in codebase | Design |
+| `get_screenshot` | Screenshot of a selection — recommended for layout fidelity | Design, FigJam |
+| `get_metadata` | Sparse XML: layer IDs, names, types, position, sizes — good for large designs | Design |
+| `get_figjam` | FigJam diagrams as XML with screenshots | FigJam |
+| `search_design_system` | Search across all connected libraries: components, variables, styles | Design |
+| `whoami` | User identity, plans, seat types (remote only) | — |
 
 ### Write Tools
-| Tool | Beschreibung | File-Typen | Hinweise |
-|------|-------------|------------|----------|
-| `use_figma` | General-Purpose Write: Create, Edit, Delete, Inspect beliebiger Objekte | Design, FigJam | Führt JavaScript via Plugin API aus. Braucht Full Seat. Beta, wird kostenpflichtig. |
-| `create_new_file` | Neues leeres Design- oder FigJam-File in Drafts | — | Gibt file_key + file_url zurück |
-| `generate_figma_design` | UI-Layers aus Live-Interfaces generieren → neues/bestehendes File oder Clipboard | Design | Remote only, nur bestimmte Clients, exempt von Rate Limits |
-| `generate_diagram` | FigJam-Diagramm aus Mermaid-Syntax | — | Flowchart, Gantt, State, Sequence |
-| `add_code_connect_map` | Mapping Figma Node → Code-Komponente hinzufügen | Design | |
-| `create_design_system_rules` | Rule-File für Design-System-aware Code-Generierung | — | |
+| Tool | Description | File Types | Notes |
+|------|------------|------------|-------|
+| `use_figma` | General-purpose write: create, edit, delete, inspect arbitrary objects | Design, FigJam | Executes JavaScript via Plugin API. Requires Full Seat. Beta, will become paid. |
+| `create_new_file` | New empty design or FigJam file in drafts | — | Returns file_key + file_url |
+| `generate_figma_design` | Generate UI layers from live interfaces → new/existing file or clipboard | Design | Remote only, certain clients only, exempt from rate limits |
+| `generate_diagram` | FigJam diagram from Mermaid syntax | — | Flowchart, Gantt, state, sequence |
+| `add_code_connect_map` | Add mapping Figma node → code component | Design | |
+| `create_design_system_rules` | Rule file for design-system-aware code generation | — | |
 
 ### Code Connect Tools
-| Tool | Beschreibung |
-|------|-------------|
-| `get_code_connect_suggestions` | Von Figma getriggert: Vorschläge für Component→Code Mappings |
-| `send_code_connect_mappings` | Bestätigt vorgeschlagene Code Connect Mappings |
+| Tool | Description |
+|------|------------|
+| `get_code_connect_suggestions` | Figma-triggered: suggestions for component → code mappings |
+| `send_code_connect_mappings` | Confirm proposed Code Connect mappings |
+| `get_context_for_code_connect` | Context needed for Code Connect setup |
 
 ---
 
-## 2. Abgrenzung: Remote MCP vs. Desktop MCP vs. REST API vs. Plugin API
+## 2. Comparison: Remote MCP vs. Desktop MCP vs. REST API vs. Plugin API
 
-| Aspekt | Remote MCP | Desktop MCP | REST API | Plugin API |
+| Aspect | Remote MCP | Desktop MCP | REST API | Plugin API |
 |--------|-----------|-------------|----------|------------|
-| **Hosting** | Figma Cloud (`mcp.figma.com`) | Lokal, braucht Figma Desktop App | Figma Cloud Endpoints | Innerhalb Figma App (Plugins/Widgets) |
-| **Auth** | OAuth 2.0 (DCR, nur approved Clients) | Lokale App-Session | Personal Access Token (PAT) oder OAuth | App-Session |
-| **Platform** | Jede (headless möglich mit Proxy) | Windows/macOS only | Jede | Windows/macOS (Desktop App) |
-| **Write-Fähigkeit** | ✅ via `use_figma` (Plugin API JS) | ✅ via `use_figma` | Begrenzt (Comments, Variables, einige Properties) | ✅ Voller Zugriff |
-| **Selection-Awareness** | ❌ Nein — Link-basiert | ✅ Ja, real-time | ❌ Nein | ✅ Ja |
-| **Rate Limits** | 200/Tag (Pro/Org Full/Dev), 600/Tag (Enterprise) | Keine dokumentierten | Tier-basiert (10-100/min) | Keine |
-| **Jetson-kompatibel** | ✅ (mit OAuth-Lösung) | ❌ (kein Linux-Desktop) | ✅ | ❌ |
-| **Feature-Breite** | Breiteste MCP-Toolset | Selection + Write | CRUD auf Files/Nodes/Variables | Voller Runtime-Zugriff |
-| **Figma Make** | Lesend als Kontext | Lesend als Kontext | ❌ | ❌ |
+| **Hosting** | Figma Cloud (`mcp.figma.com`) | Local, requires Figma Desktop App | Figma Cloud endpoints | Inside Figma App (plugins/widgets) |
+| **Auth** | OAuth 2.0 (DCR, approved clients only) | Local app session | Personal Access Token (PAT) or OAuth | App session |
+| **Platform** | Any (headless possible with proxy) | Windows/macOS only | Any | Windows/macOS (Desktop App) |
+| **Write capability** | ✅ via `use_figma` (Plugin API JS) | ✅ via `use_figma` | Limited (comments, variables, some properties) | ✅ Full access |
+| **Selection awareness** | ❌ No — link-based | ✅ Yes, real-time | ❌ No | ✅ Yes |
+| **Rate limits** | 200/day (Pro/Org Full/Dev), 600/day (Enterprise) | None documented | Tier-based (10-100/min) | None |
+| **Jetson compatible** | ✅ (with OAuth solution) | ❌ (no Linux desktop) | ✅ | ❌ |
+| **Feature breadth** | Broadest MCP toolset | Selection + write | CRUD on files/nodes/variables | Full runtime access |
 
-### Fazit Abgrenzung
-- **REST API:** Gut für automatisierte Bulk-Ops (Export, Variables CRUD, File Management), kein `use_figma`
-- **Plugin API:** Mächtigstes Interface, aber braucht Desktop-App-Runtime — kein headless
-- **Desktop MCP:** Plugin API via MCP-Protokoll, aber Desktop-App-bound
-- **Remote MCP:** Plugin API via Cloud-Proxy — headless-fähig, aber OAuth-Gate
+### Comparison Summary
+- **REST API:** Good for automated bulk ops (export, variables CRUD, file management), no `use_figma`
+- **Plugin API:** Most powerful interface, but requires desktop app runtime — no headless
+- **Desktop MCP:** Plugin API via MCP protocol, but desktop-app-bound
+- **Remote MCP:** Plugin API via cloud proxy — headless-capable, but OAuth gate
 
 ---
 
-## 3. Auth-Modell — Das zentrale Problem
+## 3. Auth Model — The Central Problem
 
-### Wie Remote MCP authentifiziert (offiziell + technisch)
-1. OAuth 2.0 mit Dynamic Client Registration (DCR)
-2. Client schickt Registration gegen Figma's Registration-Endpoint
-3. Danach folgen Authorization + Token Exchange
-4. Für Remote MCP gibt es keinen PAT-/API-Key-Shortcut wie bei der REST API
+### How Remote MCP authenticates (official + technical)
+1. OAuth 2.0 with Dynamic Client Registration (DCR)
+2. Client sends registration to Figma's registration endpoint
+3. Then authorization + token exchange follow
+4. For Remote MCP there is no PAT/API-key shortcut like with the REST API
 
-### Was offiziell dokumentiert ist
-- Figma dokumentiert konkrete unterstützte Clients / Installpfade (u. a. Claude Code, Codex, Cursor, VS Code).
-- Figma dokumentiert **nicht explizit**, dass nur diese Clients erlaubt sind.
-- Figma dokumentiert aber auch **nicht explizit**, dass beliebige standards-konforme Custom Clients frei per DCR/OAuth unterstützt werden.
+### What is officially documented
+- Figma documents concrete supported clients / install paths (Claude Code, Codex, Cursor, VS Code, etc.)
+- Figma does **not explicitly state** that only those clients are allowed
+- Figma also does **not explicitly promise** that arbitrary standards-compliant custom clients are freely supported via DCR/OAuth
 
-### Was praktisch beobachtet wurde
-- Eigene Custom-Client-Tests scheitern aktuell bei der OAuth Client Registration / DCR mit **`403 Forbidden`**.
-- Das betrifft sowohl direkte DCR-Requests als auch einen sauberen Test über den offiziellen MCP SDK OAuth-Pfad.
-- Öffentliche Berichte/Forum-Posts deuten in dieselbe Richtung: dokumentierte Clients funktionieren, Custom Clients stoßen an der Auth-/DCR-Schicht auf Hürden.
+### What was practically observed
+- Custom client tests currently fail at OAuth Client Registration / DCR with **`403 Forbidden`**
+- This applies to both direct DCR requests and a clean test via the official MCP SDK OAuth path
+- Public reports/forum posts point in the same direction: documented clients work, custom clients hit barriers at the auth/DCR layer
 
-### Was das für OpenClaw aktuell bedeutet
-- OpenClaws native HTTP-MCP-Support ist **nicht** das Hauptproblem.
-- Der reale Blocker ist aktuell die **Figma-Auth-/DCR-Schicht für Custom Clients**.
-- Daraus folgt momentan: dokumentierte/supported Clients sind der sicherste bekannte Integrationspfad; Custom-Client-Support bleibt ungeklärt.
+### What this means for OpenClaw
+- OpenClaw's native HTTP MCP support is **not** the main problem
+- The real blocker is currently the **Figma auth/DCR layer for custom clients**
+- Consequence: documented/supported clients are the safest known integration path; custom client support remains unresolved
 
-### Lösungswege
+### Solution Paths
 
-#### Option A: Approved Client als Proxy (empfohlen für PoC)
-OpenClaw nutzt einen approved Client (Claude Code, Cursor, Codex) als MCP-Bridge:
-- CC/Codex verbindet zu Figma MCP direkt (ist approved)
-- OpenClaw spawnt CC-Session, CC ruft Figma-Tools auf
-- **Pro:** Funktioniert sofort, keine Custom-Auth
-- **Contra:** Indirekt, zusätzliche Latenz, CC als Middleman
+#### Option A: Approved client as proxy (recommended for PoC)
+OpenClaw uses an approved client (Claude Code, Cursor, Codex) as MCP bridge.
 
-#### Option B: Community Proxy (bitovi/figma-mcp-proxy)
-- Open-Source OAuth-Proxy der das DCR-Problem umgeht
-- Läuft als eigener Service, leitet Auth weiter
-- **Pro:** Headless, direkte Tool-Aufrufe
-- **Contra:** Unklar ob noch funktioniert, Abhängigkeit von Figma's Toleranz
+#### Option B: Community proxy (bitovi/figma-mcp-proxy)
+Open-source OAuth proxy that works around the DCR problem.
 
-#### Option C: Figma Client-Approval / Klarstellung einholen
-- Direkte Klärung mit Figma, ob und wie Custom MCP Clients unterstützt oder freigegeben werden
-- **Pro:** Offizieller Weg, reduziert Rätselraten
-- **Contra:** Abhängig von Figma-Antwort, möglicherweise Wartezeit
+#### Option C: Seek Figma client approval / clarification
+Direct clarification with Figma on custom MCP client support.
 
 #### Option D: REST API + Community MCP (GLips/Figma-Context-MCP)
-- Lesen: GLips MCP (nutzt REST API mit PAT, kein OAuth-Gate)
-- Schreiben: REST API (begrenzt) oder `use_figma` via Option A
-- **Pro:** Sofort nutzbar für Read-Workflows
-- **Contra:** Kein `use_figma`, kein Write-to-Canvas via REST
+Read: GLips MCP (uses REST API with PAT, no OAuth gate). Write: limited via REST or `use_figma` via Option A.
 
-#### Option E: mcporter direkt auf Remote MCP
-- mcporter hat OAuth-Support (`mcporter auth`)
-- Könnte als Figma-MCP-Client agieren wenn OAuth-Flow durchkommt
-- **Zu testen:** Ob mcporter durch das DCR-Gate kommt oder auch 403 bekommt
+#### Option E: mcporter direct to Remote MCP
+mcporter has OAuth support (`mcporter auth`), could act as Figma MCP client.
 
 ---
 
-## 4. Rate Limits & Kosten
+## 4. Rate Limits & Costs
 
-| Plan/Seat | Tägliches Limit | Per-Minute |
-|-----------|----------------|------------|
-| Enterprise (alle) | 600/Tag | 20/min |
-| Org/Pro + Full/Dev | 200/Tag | 10-15/min |
-| Starter oder View/Collab | 6/Monat | — |
+| Plan/Seat | Daily Limit | Per Minute |
+|-----------|-------------|------------|
+| Enterprise (all) | 600/day | 20/min |
+| Org/Pro + Full/Dev | 200/day | 10-15/min |
+| Starter or View/Collab | 6/month | — |
 
-**Wichtig:**
-- Write-Tools (`use_figma`, `generate_figma_design`, `add_code_connect_map`, `whoami`) sind **exempt von Rate Limits**
-- Limits gelten für Read-Tools
-- Limit richtet sich nach File-Location (Workspace/Team), nicht nur User-Seat
-- `use_figma` ist aktuell kostenlos (Beta), wird "usage-based paid feature"
-
----
-
-## 5. Bekannte Limitierungen von `use_figma`
-
-- 20KB Output-Response-Limit pro Call
-- Keine Image/Asset-Unterstützung (kein Import von Bildern/Videos/GIFs)
-- Keine Custom Fonts
-- Components müssen manuell published werden bevor Code Connect greift
-- Beta-Qualität — Output braucht manuelles Review und Cleanup
-- Keine Selection-Awareness (Link-basiert, nicht Echtzeit-Selection)
+**Important:**
+- Write tools (`use_figma`, `generate_figma_design`, `add_code_connect_map`, `whoami`) are **exempt from rate limits**
+- Limits apply to read tools
+- Limit depends on file location (workspace/team), not just user seat
+- `use_figma` is currently free (beta), will become "usage-based paid feature"
 
 ---
 
-## 6. Alternative MCP Server (Community)
+## 5. Known Limitations of `use_figma`
 
-| Server | Ansatz | Auth | Write? | Vorteile |
-|--------|--------|------|--------|----------|
-| **GLips/Figma-Context-MCP** | REST API, vereinfacht Responses | PAT | ❌ | Sofort nutzbar, kein OAuth-Gate, Open Source |
-| **Figma Console MCP** | WebSocket Desktop Bridge + REST + Plugin API | PAT | ✅ (90+ dedizierte Tools) | Granulare Write-Tools, Batch-Ops, besseres Error Handling |
-| **Tim Holden's Design System MCP** | REST API, Design-System-fokussiert | PAT | Teilweise | Variables/Files ohne Plugin API |
+- 20KB output response limit per call
+- No image/asset support (no import of images/videos/GIFs)
+- No custom fonts
+- Components must be manually published before Code Connect applies
+- Beta quality — output needs manual review and cleanup
+- No selection awareness (link-based, not real-time selection)
 
 ---
 
-## 7. Offene Klärung für das Gespräch mit Figma
+## 6. Alternative MCP Servers (Community)
 
-Für morgen ist ein Gespräch mit einem Figma-Vertriebler / Ansprechpartner geplant. Ziel:
-- klären, ob Custom MCP Clients offiziell unterstützt werden,
-- falls ja: unter welchen Bedingungen,
-- falls nein oder eingeschränkt: welcher offiziell empfohlene Integrationspfad für Plattformen wie OpenClaw vorgesehen ist.
+| Server | Approach | Auth | Write? | Advantages |
+|--------|----------|------|--------|------------|
+| **GLips/Figma-Context-MCP** | REST API, simplified responses | PAT | ❌ | Immediately usable, no OAuth gate, open source |
+| **Figma Console MCP** | WebSocket Desktop Bridge + REST + Plugin API | PAT | ✅ (90+ dedicated tools) | Granular write tools, batch ops, better error handling |
+| **Tim Holden's Design System MCP** | REST API, design-system-focused | PAT | Partially | Variables/files without Plugin API |
 
-Die Dokumentation sollte bis dahin bewusst trennen zwischen:
-- **offiziell dokumentiert**,
-- **praktisch beobachtet**,
-- **offen / bei Figma zu klären**.
+---
 
-## 8. OpenClaw-spezifischer Kontext
+## 7. OpenClaw-Specific Context
 
-### Was wir haben
-- `mcp-bridge` Plugin aktiv in OpenClaw
-- `mcporter` CLI installiert (HTTP + stdio MCP, Auth, Config)
-- ACP-Runtime für CC/Codex-Sessions (approved Figma Clients)
-- Stitch-Design Skill als Referenz-Architektur für Design-Tool-Integration
+### What we have
+- `mcp-bridge` plugin active in OpenClaw
+- `mcporter` CLI installed (HTTP + stdio MCP, auth, config)
+- ACP runtime for CC/Codex sessions (approved Figma clients)
+- Stitch Design Skill as reference architecture for design tool integration
 
-### Was wir brauchen
-- OAuth-Lösung für headless Figma-MCP-Zugriff
-- Oder: bewusste Entscheidung CC/Codex als Proxy zu nutzen
-- Figma Full Seat (für Write-Access) — **Simeon: welcher Plan/Seat?**
+### What we need
+- OAuth solution for headless Figma MCP access
+- Or: deliberate decision to use CC/Codex as proxy
+- Figma Full Seat (for write access)

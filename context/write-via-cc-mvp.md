@@ -1,4 +1,4 @@
-# Write via CC / ACP MVP — figma-agent
+# Write via CC / ACP MVP - figma-agent
 
 ## Goal
 Define the first reliable write path for `figma-agent` using Claude Code / ACP as the mutation layer for Figma.
@@ -69,23 +69,23 @@ Therefore, the MVP write layer should not try to be clever. It should be explici
 
 ## Product rules
 
-### Rule A — Read first when context matters
+### Rule A - Read first when context matters
 If the change request depends on the current state, inspect before writing.
 
-### Rule B — Keep write instructions narrow
-Do not send vague prompts like “make it better”.
+### Rule B - Keep write instructions narrow
+Do not send vague prompts like "make it better".
 Prefer targeted deltas.
 
-### Rule C — Tell the user when the heavy path starts
+### Rule C - Tell the user when the heavy path starts
 Because write execution is slower and has side effects, it should be communicated clearly.
 
-### Rule D — Return concrete change summary
+### Rule D - Return concrete change summary
 After a write step, the user should get:
 - what changed
 - what remained stable
 - what to review next
 
-### Rule E — One request, one write step
+### Rule E - One request, one write step
 For MVP, avoid turning a single user message into a long hidden chain.
 
 ---
@@ -123,8 +123,8 @@ Frame it as infrastructure/path failure, not as user design failure.
 ## User-facing behavior
 
 Good phrasing:
-- “Für die Änderung gehe ich jetzt über den CC-Pfad, weil wir dafür wirklich in Figma schreiben müssen.”
-- “Ich hole kurz den relevanten Kontext und gebe dann die gezielte Änderung an den Write-Pfad.”
+- "I'll push this change through Claude Code now since we need to write directly into Figma."
+- "Let me grab the relevant context first, then I'll hand the targeted change off to the write path."
 
 Bad behavior:
 - hiding that a heavier side-effecting path is being used

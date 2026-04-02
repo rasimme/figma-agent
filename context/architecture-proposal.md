@@ -1,146 +1,138 @@
-# Architektur: Figma Agent Skill für OpenClaw
+# Architecture: Figma Agent Skill for OpenClaw
 
-**Datum:** 2026-04-01 (erstellt), 2026-04-02 (finale Entscheidung)
-**Status:** Entschieden — Hybrid: CC Token Bootstrap + native OpenClaw MCP für Reads
-**Ziel:** Saubere Entscheidungsgrundlage für Figma MCP Integration in OpenClaw
+**Date:** 2026-04-01 (created), 2026-04-02 (final decision)
+**Status:** Decided — Hybrid: CC Token Bootstrap + direct MCP for reads
+**Goal:** Clean decision basis for Figma MCP integration into OpenClaw
 
 ---
 
-## Entschiedene Architektur: Hybrid CC Token Bootstrap
+## Chosen Architecture: Hybrid CC Token Bootstrap
 
-> Update 2026-04-02: Diese Architektur ist nicht nur ein technischer Integrationsentscheid, sondern auch die **produktseitige MVP-Richtung** für `figma-agent`. Der Skill wird als **einheitliche Oberfläche mit internem Routing** gedacht: direkte Read/Inspect-Fähigkeiten + CC/ACP für Write-Operationen.
+> Update 2026-04-02: This architecture is not just a technical integration decision — it is also the **product-level MVP direction** for `figma-agent`. The skill is designed as a **unified surface with internal routing**: direct read/inspect capabilities + CC/ACP for write operations.
 
 ## Delivery Sequence
 
 ### Phase A — Foundation / Enablement (T-013)
-Zuerst wird die technische Grundlage sauber fertiggestellt:
-- Token Bootstrap
-- Skill-Struktur
-- Basis-SKILL.md
-- technischer E2E-Nachweis
+Technical foundation first:
+- Token bootstrap
+- Skill structure
+- Base SKILL.md
+- Technical E2E proof
 
 ### Phase B — Hybrid MVP / Productization (T-014)
-Danach wird daraus das eigentliche Produkt gebaut:
-- Capability Map
-- Routing-Regeln
-- Direct Read Layer
+Then build the actual product:
+- Capability map
+- Routing rules
+- Direct read layer
 - Write via CC/ACP
-- Review Loop
-- Skill Packaging / ClawHub Positioning
+- Review loop
+- Skill packaging / ClawHub positioning
 
-Die erste kanonische Routing-Definition liegt in `context/capability-routing-map.md`.
-Die ersten konkreten MVP-Ausführungsdefinitionen liegen in:
+The first canonical routing definition is in `context/capability-routing-map.md`.
+The first concrete MVP execution definitions are in:
 - `context/direct-read-layer-mvp.md`
 - `context/write-via-cc-mvp.md`
 
-Diese Trennung ist bewusst: **T-013 macht den Stack belastbar, T-014 macht daraus ein Produkt.**
+This separation is intentional: **T-013 makes the stack reliable, T-014 turns it into a product.**
 
-### Kern-Entscheidung (2026-04-02)
+### Core Decision (2026-04-02)
 
-Der CC-OAuth-Token für Figma ist in `~/.claude/.credentials.json` unter `mcpOAuth` gespeichert (inkl. `refreshToken`). Damit ist ein **Token-Bootstrap ohne neue DCR** möglich: der Token wird einmalig aus CC-Credentials extrahiert und in OpenClaw's MCP-Config als Bearer-Header eingetragen.
+The CC OAuth token for Figma is stored in `~/.claude/.credentials.json` under `mcpOAuth` (including `refreshToken`). This enables a **token bootstrap without new DCR**: the token is extracted once from CC credentials and written into OpenClaw's MCP config as a Bearer header.
 
-**Read-Operationen:** OpenClaw nativ via `figma__*` Tools (kein CC-Overhead)
-**Write-Operationen:** CC-Session mit nativen `mcp__figma__*` Tools + offiziellen Figma-Skills
+**Read operations:** Direct via zero-dep wrapper (`scripts/figma-mcp.mjs`)
+**Write operations:** CC session with native `mcp__figma__*` tools + official Figma skills
 
-### Optionen-Übersicht
+### Options Overview
 
-| Option | Ansatz | Bewertung |
-|--------|--------|-----------|
-| 1. mcporter Bug fixen | Externe CLI-Dependency | ❌ Fragile Dependency, ClawHub-Scanner-Risiko |
-| 2. Standalone Auth (DCR/PKCE) | Eigenes Auth-Script + OpenClaw `figma__*` Tools | ❌ Gescheitert: DCR 403 für Custom Clients |
-| 3. CC in tmux | Claude Code als interaktiver Bridge | ❌ Nicht publishbar, nicht automatisierbar |
-| 4. Eigener MCP-Client im Skill | Bundled SDK-Transport | ❌ Overkill, dupliziert OpenClaw-Features |
-| **5. CC Token Bootstrap (Hybrid)** | **CC-Token extrahieren → OpenClaw-Config + CC für Writes** | **✅ Gewählt** |
+| Option | Approach | Assessment |
+|--------|----------|------------|
+| 1. Fix mcporter bug | External CLI dependency | ❌ Fragile dependency, ClawHub scanner risk |
+| 2. Standalone auth (DCR/PKCE) | Custom auth script + OpenClaw `figma__*` tools | ❌ Failed: DCR 403 for custom clients |
+| 3. CC in tmux | Claude Code as interactive bridge | ❌ Not publishable, not automatable |
+| 4. Custom MCP client in skill | Bundled SDK transport | ❌ Overkill, duplicates OpenClaw features |
+| **5. CC Token Bootstrap (Hybrid)** | **Extract CC token → OpenClaw config + CC for writes** | **✅ Chosen** |
 
-### Warum Option 5
+### Why Option 5
 
-Diese Option ist nicht nur technisch brauchbar, sondern auch produktseitig die stärkste Basis für den nächsten Schritt:
-- **Ein Skill, zwei Pfade:** Der User spricht mit einem System, nicht mit zwei getrennten Integrationen.
-- **Breite Capability, flache Automatisierung:** v1 soll viele sinnvolle Fähigkeiten kennen, ohne sofort eine große Workflow-Maschine zu bauen.
-- **MVP-tauglich:** Ein echter End-to-End Flow ist möglich: bestehenden Screen lesen → gezielten Write-Pfad nutzen → Ergebnis zurückgeben → Review-Iteration.
-
-- **Reads sofort nativ:** Nach einmaligem Bootstrap läuft `figma__whoami`, `figma__get_design_context` etc. nativ in OpenClaw — keine CC-Session-Latenz für Review-Workflows
-- **Writes via CC:** `use_figma`, `generate_figma_design` etc. laufen in CC wo die Figma-OAuth-Session nativ besteht und die offiziellen Figma-Skills verfügbar sind
-- **Kein DCR nötig:** Der Token existiert bereits durch CC-Auth — kein Custom-Client-Registration-Problem
-- **Saubere Trennung:** Agent orchestriert aus OpenClaw, CC führt komplexe Write-Workflows aus
-- **Clawhub-publishbar:** Skill hat keine Laufzeit-Dependencies auf CC; Bootstrap ist einmaliges Setup-Script
+This option is not just technically viable but also the strongest product foundation:
+- **One skill, two paths:** The user talks to one system, not two separate integrations.
+- **Broad capability, shallow automation:** v1 covers many useful capabilities without building a heavy workflow engine.
+- **MVP-ready:** A real end-to-end flow is possible: read existing screen → targeted write path → return result → review iteration.
+- **Reads immediately direct:** After one-time bootstrap, `get_design_context`, `get_screenshot` etc. run directly — no CC session latency for review workflows.
+- **Writes via CC:** `use_figma`, `generate_figma_design` etc. run in CC where Figma OAuth session exists natively and official Figma skills are available.
+- **No DCR needed:** Token already exists from CC auth — no custom client registration problem.
+- **Clean separation:** Agent orchestrates from OpenClaw, CC executes complex write workflows.
+- **ClawHub-publishable:** Skill has no runtime dependencies on CC; bootstrap is a one-time setup script.
 
 ---
 
-## Skill-Architektur (T-013)
+## Skill Architecture (T-013)
 
 ```
 figma-agent/
-├── SKILL.md                  # Workflows: Read (native) + Write (CC) + Tool-Inventar
+├── SKILL.md                  # Workflows: Read (direct) + Write (CC) + tool inventory
 ├── scripts/
-│   └── auth.mjs              # Token-Bootstrap: CC credentials → openclaw.json
+│   ├── figma-mcp.mjs         # Zero-dep Figma MCP client (~191 LOC)
+│   └── bootstrap-token.mjs   # Multi-client token bootstrap: CC/Codex/Windsurf → openclaw.json
 ├── references/
-│   └── figma-api.md          # Tool-Referenz: alle 17 Tools mit Kontext-Annotation
-├── package.json              # Kein SDK — nur Node built-ins
+│   └── figma-api.md          # Tool reference: all 17 tools with context annotation
+├── package.json              # No SDK — only Node built-ins
 └── .clawhubignore
 ```
 
-### Token-Bootstrap Flow (scripts/auth.mjs)
+### Token Bootstrap Flow (scripts/bootstrap-token.mjs)
 
 ```
-~/.claude/.credentials.json
-  → lese mcpOAuth['figma|...'].accessToken + expiresAt
-  → prüfe ob abgelaufen (Warnung, kein Abbruch)
-  → patch ~/.openclaw/openclaw.json:
+Scan supported clients (CC → Codex → Windsurf)
+  → read accessToken + refreshToken + expiresAt
+  → optional: --refresh to get fresh token via OAuth metadata endpoint
+  → write to ~/.openclaw/openclaw.json:
       mcp.servers.figma.headers.Authorization = "Bearer <token>"
-  → Hinweis: OpenClaw-Gateway-Restart erforderlich
-  → figma__whoami nativ verfügbar
+  → reminder: gateway restart required
 ```
 
-### Read/Write-Split
+### Read/Write Split
 
-### Produktregel für v1
-- **Read / Inspect:** eher leise und direkt
-- **Write / Edit / Create:** transparent als schwererer Pfad kommunizieren, wenn CC/ACP genutzt wird
-- **Außenkommunikation / ClawHub:** Capability-Gruppen klar benennen, auch wenn die Nutzung natürlichsprachlich einheitlich bleibt
-
-### Read/Write-Split
-
-| Kontext | Tools | Wann |
+| Context | Tools | When |
 |---------|-------|------|
-| **OpenClaw nativ** | `figma__get_design_context`, `figma__get_screenshot`, `figma__get_metadata`, `figma__get_variable_defs`, `figma__search_design_system`, `figma__whoami`, `figma__get_figjam`, `figma__get_code_connect_map` | Review, Analyse, Inspect, Daten holen |
-| **CC-Session** | `mcp__figma__use_figma`, `mcp__figma__generate_figma_design`, `mcp__figma__create_new_file`, `mcp__figma__generate_diagram`, `mcp__figma__add_code_connect_map`, `mcp__figma__send_code_connect_mappings`, `mcp__figma__create_design_system_rules` | Design erstellen, Library pflegen, Tokens schreiben |
+| **Direct (figma-mcp.mjs)** | `get_design_context`, `get_screenshot`, `get_metadata`, `get_variable_defs`, `search_design_system`, `whoami`, `get_figjam`, `get_code_connect_map`, `get_code_connect_suggestions`, `get_context_for_code_connect` | Review, analysis, inspect, data retrieval |
+| **CC session** | `use_figma`, `generate_figma_design`, `create_new_file`, `generate_diagram`, `add_code_connect_map`, `send_code_connect_mappings`, `create_design_system_rules` | Create designs, manage libraries, write tokens |
 
-### Token-Refresh
+### Product Rules for v1
+- **Read / Inspect:** quiet and direct
+- **Write / Edit / Create:** transparently communicate the heavier CC/ACP path
+- **External positioning / ClawHub:** clearly name capability groups, even though user interaction stays naturally unified
 
-- v1.0: Manuell — bootstrap.mjs erneut ausführen bei 401-Fehler (CC refresht Token automatisch)
-- v1.1: Cron-Job der `expiresAt` überwacht und Bootstrap auto-triggert
-
----
-
-## Erkenntnisse aus PoC-Phase (2026-04-01)
-
-### Offiziell dokumentiert
-
-- Figma Remote MCP unterstützt **Read + Write**, nicht nur Read-only
-- Offizielle Clients: Claude Code, Codex, Cursor, VS Code (und weitere via MCP Catalog)
-- OpenClaw hat seit 2026.4.1 nativen HTTP-MCP-Support
-
-### Praktisch beobachtet
-
-- Custom-Client-DCR: **403 Forbidden** (Raw-Request + MCP-SDK-Pfad getestet)
-- CC-Sessions in `--print` Mode laden keine MCP-Server → CC als reiner Bridge-Pfad nicht geeignet
-- CC interaktiv: alle 17 Figma-Tools verfügbar, OAuth-Token in `~/.claude/.credentials.json`
-
-### Entschieden
-
-- DCR/PKCE Custom-Auth: **Aufgegeben** (403, kein Freigabe-Modell bekannt)
-- mcporter: **Aufgegeben** (OAuth-Flow unvollständig, fragile Dependency)
-- CC Token Bootstrap: **Gewählt**
+### Token Refresh
+- v1.0: Manual — re-run `bootstrap-token.mjs --refresh` on 401 errors
+- v1.1: Cron job monitoring `expiresAt` and auto-triggering bootstrap
 
 ---
 
-## Rate Limits & Kosten
+## PoC Phase Findings (2026-04-01)
 
-| Plan | Tägliches Limit | Write-Tools |
-|------|----------------|-------------|
-| Org/Pro Full/Dev | 200/Tag | Exempt |
-| Starter | 6/Monat | Exempt |
+### Officially documented
+- Figma Remote MCP supports **read + write**, not just read-only
+- Official clients: Claude Code, Codex, Cursor, VS Code (and more via MCP Catalog)
+- OpenClaw has native HTTP MCP support since 2026.4.1
 
-- `use_figma` aktuell kostenlos (Beta), wird "usage-based paid feature"
-- Simeon: Starter Plan (privat) + UXMA Org Plan
+### Practically observed
+- Custom client DCR: **403 Forbidden** (raw request + MCP SDK path tested)
+- CC sessions in `--print` mode do not load MCP servers → CC as pure bridge path is not viable
+- CC interactive: all 17 Figma tools available, OAuth token in `~/.claude/.credentials.json`
+
+### Decided
+- DCR/PKCE custom auth: **Abandoned** (403, no known approval model)
+- mcporter: **Abandoned** (OAuth flow incomplete, fragile dependency)
+- CC Token Bootstrap: **Chosen**
+
+---
+
+## Rate Limits & Costs
+
+| Plan | Daily Limit | Write Tools |
+|------|-------------|-------------|
+| Org/Pro Full/Dev | 200/day | Exempt |
+| Starter | 6/month | Exempt |
+
+- `use_figma` currently free (beta), will become "usage-based paid feature"

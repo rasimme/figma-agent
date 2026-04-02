@@ -114,7 +114,7 @@ async function waitForCallback({ port, expectedState, timeoutMs = 300000 }) {
         return;
       }
       res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8' });
-      res.end('Figma OAuth erfolgreich. Du kannst dieses Fenster jetzt schließen.');
+      res.end('Figma OAuth successful. You can close this window now.');
       cleanup();
       resolve({ code });
     });
@@ -215,15 +215,15 @@ function tokenRecord({ token, client, meta, redirectUri }) {
 function printNextSteps(record) {
   console.log('\nToken gespeichert unter:');
   console.log(`  ${TOKEN_PATH}`);
-  console.log('\nNächster Schritt (T-008):');
+  console.log('\nNext step (T-008):');
   console.log('  OpenClaw Config patchen:');
   console.log('  mcp.servers.figma = {');
   console.log(`    "url": "${FIGMA_MCP_URL}",`);
   console.log(`    "headers": { "Authorization": "Bearer ${record.token.access_token.slice(0, 12)}..." }`);
   console.log('  }');
   if (record.expiresAt) {
-    console.log(`\nToken läuft voraussichtlich ab: ${record.expiresAt}`);
-    console.log('Refresh später mit: node scripts/auth.mjs --refresh');
+    console.log(`\nToken is expected to expire at: ${record.expiresAt}`);
+    console.log('Refresh later with: node scripts/auth.mjs --refresh');
   }
 }
 
@@ -239,12 +239,12 @@ async function runAuth() {
   const state = randomString(24);
   const authUrl = buildAuthorizeUrl(authMeta, client.client_id, redirectUri, codeChallenge, state);
 
-  console.log('\nÖffne diese URL manuell im Browser:');
+  console.log('\nOpen this URL manually in your browser:');
   console.log(authUrl.toString());
-  console.log(`\nWarte auf OAuth-Callback auf ${redirectUri} ...`);
+  console.log(`\nWaiting for OAuth callback on ${redirectUri} ...`);
 
   const { code } = await waitForCallback({ port, expectedState: state });
-  console.log('Code erhalten, tausche gegen Token ...');
+  console.log('Code received, exchanging for token ...');
   const token = await exchangeCodeForToken(authMeta, client.client_id, code, redirectUri, codeVerifier);
   const record = tokenRecord({ token, client, meta: authMeta, redirectUri });
   await saveToken(record);
@@ -254,7 +254,7 @@ async function runAuth() {
 async function runRefresh() {
   const existing = await loadToken();
   if (!existing.token?.refresh_token) {
-    throw new Error('Kein refresh_token vorhanden. Bitte Auth neu starten.');
+    throw new Error('No refresh_token found. Please run auth again.');
   }
   const { authMeta } = await discoverOAuthMetadata(existing.mcpUrl || FIGMA_MCP_URL);
   const refreshed = await refreshToken(authMeta, existing.client.client_id, existing.token.refresh_token);

@@ -8,9 +8,7 @@
   },
   "type": "module",
   "description": "Unified OpenClaw Figma skill with direct inspect/read flows and a heavier write path when needed",
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.12.1"
-  },
+  "dependencies": {},
   "keywords": [
     "openclaw",
     "figma",
