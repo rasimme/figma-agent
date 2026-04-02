@@ -2,7 +2,7 @@
 
 ## Git Repositories
 
-- **Figma Agent:** _TBD (private repo to be created)_
+- **Figma Agent:** `git@github.com:rasimme/figma-agent.git` (private)
 
 ## Goal
 
@@ -28,6 +28,13 @@ Siehe `context/architecture-proposal.md` für die vollständige Einordnung.
 **Write-Operationen:** CC-Session mit Figma-MCP / offiziellen Figma-Skills.
 
 Der aktuell gewählte Bootstrap-Pfad nutzt den vorhandenen Claude-Code-OAuth-Token als pragmatische Grundlage, statt auf einen ungeklärten Custom-DCR-Flow zu setzen.
+
+## Single Source of Truth
+
+**Canonical source:** `~/repos/figma-agent`
+
+Workspace path `~/.openclaw/workspace/projects/figma-agent` should only be a symlink to the repo.
+Do not maintain two independent copies.
 
 ## Project Files
 - `context/architecture-proposal.md` — Architektur-Entscheidung mit allen 4 Optionen, Begründung, PoC-Erkenntnisse
