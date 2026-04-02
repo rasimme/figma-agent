@@ -1,0 +1,4 @@
+node_modules/
+state/
+scripts/sdk-auth-test.mjs
+*.log
