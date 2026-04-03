@@ -3,7 +3,8 @@ name: figma-agent
 description: Unified Figma skill for OpenClaw. Reads design context directly via Figma's Remote MCP and routes write/edit/create operations through Claude Code ACP sessions. Best for screen inspection, design-context analysis, targeted edits, screenshot retrieval, and lightweight review loops.
 version: 0.1.0
 requires:
-  env: FIGMA_MCP_TOKEN
+  env:
+    - FIGMA_MCP_TOKEN
 primaryEnv: FIGMA_MCP_TOKEN
 homepage: https://github.com/rasimme/figma-agent
 ---
