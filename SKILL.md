@@ -176,6 +176,43 @@ Supported token sources (in priority order):
 ### Token location
 The token is written to `openclaw.json` under `mcp.servers.figma.headers.Authorization`.
 
+## What works via Remote MCP (official)
+
+All capabilities below are confirmed via [Figma's official documentation](https://help.figma.com/hc/en-us/articles/32132100833559).
+
+### Read / Inspect ✅
+- `get_design_context` — design structure, layout, component info
+- `get_screenshot` — PNG screenshot of any frame or node
+- `get_metadata` — full layer tree with node IDs, positions, dimensions
+- `get_variable_defs` — local variables/tokens (requires valid nodeId)
+- `search_design_system` — community and linked library components/styles
+- `get_code_connect_map` / `get_code_connect_suggestions` — Code Connect mappings
+- `get_figjam` — FigJam diagram content
+- `whoami` — current user identity
+
+### Write / Create ✅ (Full Seat required)
+- `use_figma` — executes JavaScript via Figma Plugin API: create/modify frames, components, variables, auto layout, fills, strokes, text
+- `create_new_file` — creates a blank Figma file in Drafts
+- `generate_figma_design` — captures live HTML/CSS from a browser URL and imports it as editable Figma layers (HTML-to-canvas)
+- `generate_diagram` — converts Mermaid diagrams to FigJam
+- `add_code_connect_map` / `send_code_connect_mappings` — Code Connect
+- `create_design_system_rules` — design system agent instructions
+
+## Known limitations (official, as of April 2026)
+
+Source: [Figma Write to Canvas docs](https://developers.figma.com/docs/figma-mcp-server/write-to-canvas/)
+
+- **20 KB output limit** per `use_figma` call — large write operations must be split into multiple calls
+- **No image/asset import** — cannot embed raster images or external assets via MCP
+- **No custom font loading** — only fonts already installed in the Figma file/org are available
+- **Beta quality** — write to canvas is actively being improved; some edge cases may fail silently
+- **Dev Seat = read-only** — `use_figma` (write) requires a Full Seat
+- **`saveVersionHistoryAsync` not available** in Remote MCP sandbox — manual version history via Figma UI only
+- **`figma.variables.getVariableById()` not available** in Remote MCP sandbox — use variable IDs retrieved via `get_variable_defs` and bind via `setBoundVariableForPaint`
+- **SVG/vector assets** cannot be created programmatically via Plugin API in this context — clone existing vector nodes from the file instead
+- **`generate_figma_design` (HTML capture)** requires the Figma capture script to run in the browser; external `<script src>` tags are not executed in headless browsers — use inline script embedding as a workaround
+- **Write to canvas** is only available with select approved MCP clients (Claude Code, Cursor, VS Code, Codex, Copilot CLI, etc.) — not with arbitrary custom clients
+
 ## Constraints
 
 - Do not assume custom-client OAuth/DCR for Figma Remote MCP is stable.
