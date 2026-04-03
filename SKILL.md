@@ -5,6 +5,8 @@ version: 0.1.0
 requires:
   env:
     - FIGMA_MCP_TOKEN
+  anyBins:
+    - node
 primaryEnv: FIGMA_MCP_TOKEN
 homepage: https://github.com/rasimme/figma-agent
 ---

@@ -1,5 +1,5 @@
 node_modules/
 state/
-scripts/sdk-auth-test.mjs
-scripts/auth.mjs
+sdk-auth-test.mjs
+auth.mjs
 *.log
