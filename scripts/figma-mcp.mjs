@@ -174,24 +174,11 @@ export function createClient(opts = {}) {
      * @param {string} description - Longer description for the use_figma call
      * @param {string} code      - Plugin API code to execute
      */
+    // NOTE: writeWithCheckpoint() removed — figma.saveVersionHistoryAsync is not supported
+    // in the Remote MCP sandbox (confirmed 2026-04-03). Use manual Named Save in Figma
+    // (Cmd+Option+S) before running write operations. Track: https://figma.com/mcp
     async writeWithCheckpoint(fileKey, label, description, code) {
-      if (!initialized) throw new Error('figma-mcp: call initialize() first');
-
-      // 1. Save checkpoint BEFORE the write
-      const checkpointCode = `
-        await new Promise(r => setTimeout(r, 500)); // let Figma settle
-        const result = await figma.saveVersionHistoryAsync(
-          ${JSON.stringify(`[figma-agent] pre: ${label}`)},
-          ${JSON.stringify(`Automatic checkpoint before: ${description}`)}
-        );
-        return JSON.stringify({ checkpointId: result.id });
-      `;
-      await rpc('tools/call', {
-        name: 'use_figma',
-        arguments: { fileKey, description: `Checkpoint before: ${label}`, code: checkpointCode }
-      });
-
-      // 2. Execute the actual write
+      // Falls back to plain write — checkpoint silently skipped until Figma adds support
       return await rpc('tools/call', {
         name: 'use_figma',
         arguments: { fileKey, description, code }
