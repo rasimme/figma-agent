@@ -161,6 +161,43 @@ export function createClient(opts = {}) {
       return await rpc('tools/call', { name: toolName, arguments: args });
     },
 
+    /**
+     * Call use_figma with an automatic version-history checkpoint saved BEFORE
+     * the write. This ensures the user can always restore via Figma's Version
+     * History (File → Version History) if something goes wrong.
+     *
+     * Only use for write operations (use_figma, create_new_file, generate_*).
+     * Pure reads (get_screenshot, get_design_context etc.) don't need this.
+     *
+     * @param {string} fileKey   - Figma file key
+     * @param {string} label     - Short label for the checkpoint (shown in Version History)
+     * @param {string} description - Longer description for the use_figma call
+     * @param {string} code      - Plugin API code to execute
+     */
+    async writeWithCheckpoint(fileKey, label, description, code) {
+      if (!initialized) throw new Error('figma-mcp: call initialize() first');
+
+      // 1. Save checkpoint BEFORE the write
+      const checkpointCode = `
+        await new Promise(r => setTimeout(r, 500)); // let Figma settle
+        const result = await figma.saveVersionHistoryAsync(
+          ${JSON.stringify(`[figma-agent] pre: ${label}`)},
+          ${JSON.stringify(`Automatic checkpoint before: ${description}`)}
+        );
+        return JSON.stringify({ checkpointId: result.id });
+      `;
+      await rpc('tools/call', {
+        name: 'use_figma',
+        arguments: { fileKey, description: `Checkpoint before: ${label}`, code: checkpointCode }
+      });
+
+      // 2. Execute the actual write
+      return await rpc('tools/call', {
+        name: 'use_figma',
+        arguments: { fileKey, description, code }
+      });
+    },
+
     /** Get current session ID (null before initialize). */
     get sessionId() { return sessionId; },
 

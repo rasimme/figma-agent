@@ -132,6 +132,21 @@ A simple review loop is in scope:
 
 Avoid over-complicated automation. Prefer clear step-by-step execution.
 
+## Write safety: checkpoint before every write
+
+Before any write operation (`use_figma`, `create_new_file`, `generate_figma_design`),
+always save a version-history checkpoint first:
+
+```js
+// Use writeWithCheckpoint() instead of call('use_figma', ...)
+await client.writeWithCheckpoint(fileKey, 'Short label', 'Description', code);
+```
+
+This saves a named entry in Figma's Version History (File → Version History)
+so the user can always restore the state before the edit.
+
+**Rule:** reads never need a checkpoint. Writes always do.
+
 ## Failure handling
 
 ### Auth failure
