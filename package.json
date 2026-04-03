@@ -1,7 +1,6 @@
 {
   "name": "figma-agent",
   "version": "0.1.0",
-  "private": true,
   "repository": {
     "type": "git",
     "url": "git@github.com:rasimme/figma-agent.git"
