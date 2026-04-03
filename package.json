@@ -1,5 +1,6 @@
 {
   "name": "figma-agent",
+  "displayName": "Figma Agent",
   "version": "0.1.0",
   "repository": {
     "type": "git",

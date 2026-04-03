@@ -1,6 +1,6 @@
 ---
 name: figma-agent
-description: Unified Figma skill for OpenClaw. Reads design context directly via Figma's Remote MCP and routes write/edit/create operations through Claude Code ACP sessions. Best for screen inspection, design-context analysis, targeted edits, screenshot retrieval, and lightweight review loops.
+description: Unified Figma skill for OpenClaw. Reads design context directly via Figma's Remote MCP and routes write/edit/create operations through ACP coding sessions (Claude Code, Codex, or other supported agents). Best for screen inspection, design-context analysis, targeted edits, screenshot retrieval, and lightweight review loops.
 version: 0.1.0
 requires:
   env:
@@ -15,14 +15,14 @@ homepage: https://github.com/rasimme/figma-agent
 
 A **unified Figma skill** with a **hybrid architecture**:
 - **Read / Inspect** operations use the direct Figma MCP path.
-- **Write / Edit / Create** operations go through **Claude Code via ACP**.
+- **Write / Edit / Create** operations go through an **ACP coding session** (Claude Code, Codex, or another ACP-supported agent with Figma MCP connected).
 - To the user, this feels like **one skill**, not two separate systems.
 
 ## Prerequisites
 
 1. **Figma account** (Full Seat required for write access)
 2. **One-time Figma MCP connection** via a supported client:
-   - Claude Code: `claude plugin install figma`
+   - Claude Code: `claude plugin install figma` or connect via MCP settings
    - Codex, Cursor, VS Code, Windsurf: add Figma in MCP settings
 3. **Token bootstrap:** `node scripts/bootstrap-token.mjs` — automatically extracts the token and writes it to OpenClaw config
 4. **Gateway restart:** `openclaw gateway restart`
@@ -50,11 +50,11 @@ The skill behaves like **one product** with internal routing.
 
 ### Transparency rule
 - **Read operations:** stay quiet about internal routing unless it matters.
-- **Write / edit / create operations:** explicitly tell the user when switching to the heavier CC/ACP execution path.
+- **Write / edit / create operations:** explicitly tell the user when switching to the heavier ACP execution path.
 
 Examples:
 - Read: "The screen uses a 12-column grid with 16px gutters…"
-- Write: "I'll push this change through Claude Code now and bring back the result."
+- Write: "I'll push this change through an ACP coding session now and bring back the result."
 
 ## Capability groups
 
@@ -78,7 +78,7 @@ Available tools (via `scripts/figma-mcp.mjs`):
 - `get_context_for_code_connect` — context for Code Connect setup
 - `whoami` — verify auth and account info
 
-### 2. Write / Edit / Create (CC/ACP path)
+### 2. Write / Edit / Create (ACP path)
 
 Typical requests:
 - "Change this layout"
@@ -86,7 +86,7 @@ Typical requests:
 - "Add a new screen"
 - "Rewrite this in Figma"
 
-For these, use **Claude Code via ACP**. The CC session has access to:
+For these, use an **ACP coding agent** (e.g. Claude Code or Codex). The ACP session has access to:
 - `use_figma` — general-purpose Plugin API execution
 - `create_new_file` — create blank Figma file
 - `generate_figma_design` — code-to-canvas generation
@@ -99,7 +99,7 @@ For these, use **Claude Code via ACP**. The CC session has access to:
 
 ### Namespace note
 - `figma__*` = OpenClaw-side direct tools (if/when native MCP materializes)
-- `mcp__figma__*` = Figma MCP tools inside Claude Code sessions
+- `mcp__figma__*` = Figma MCP tools inside ACP coding sessions
 - `scripts/figma-mcp.mjs` = zero-dependency wrapper for direct calls
 
 The user does not need to know about this distinction.
@@ -109,19 +109,19 @@ The user does not need to know about this distinction.
 **Route to direct read when the request is about:**
 seeing, understanding, comparing, extracting, summarizing, inspecting, reviewing existing design state.
 
-**Route to CC/ACP when the request is about:**
+**Route to ACP when the request is about:**
 changing, editing, creating, generating, restructuring, writing to canvas, producing new design state.
 
 ### Mixed requests
 1. Inspect first (direct path)
 2. Summarize relevant context
-3. Switch to CC/ACP for the mutation
+3. Switch to ACP for the mutation
 4. Return the result
 
 ### Write path flow
 1. Determine that mutation is required
 2. Gather relevant Figma context directly first
-3. Hand mutation task to Claude Code via ACP
+3. Hand mutation task to the ACP coding agent
 4. Let CC execute the Figma change
 5. Return result to the conversation
 

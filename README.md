@@ -2,7 +2,7 @@
 
 <p align="center">
   <strong>Figma Remote MCP for OpenClaw — read, inspect, and edit Figma designs from chat.</strong><br>
-  An <a href="https://github.com/openclaw/openclaw">OpenClaw</a> skill using the official <a href="https://mcp.figma.com/mcp">Figma Remote MCP server</a>.
+  An <a href="https://github.com/openclaw/openclaw">OpenClaw</a> skill using the official <a href="https://help.figma.com/hc/en-us/articles/32132100833559">Figma Remote MCP server</a>.
 </p>
 
 <p align="center">
@@ -32,7 +32,7 @@ Your OpenClaw agent connects directly to Figma via the official Figma Remote MCP
 
 > **"Create a new settings screen in this Figma file with our existing components."**
 >
-> → Agent spawns a Claude Code session with Figma MCP connected → writes directly to canvas → returns result.
+> → Agent spawns an ACP coding session with Figma MCP connected → writes directly to canvas → returns result.
 
 **Runtime scope:** requires only `FIGMA_MCP_TOKEN` (extracted by the bootstrap script from any supported Figma MCP client). Talks only to `https://mcp.figma.com/mcp`. Stores no data except the token in OpenClaw config.
 
@@ -45,7 +45,7 @@ Your OpenClaw agent connects directly to Figma via the official Figma Remote MCP
 - **HTML to Canvas** — capture live browser UI as editable Figma layers via `generate_figma_design`
 - **Design System** — search library components/styles, inspect variable collections, work with Code Connect
 - **Zero external dependencies** — MCP client is a single self-contained script (~200 lines)
-- **Multi-client token bootstrap** — automatically extracts Figma MCP token from Claude Code, Codex, or Windsurf
+- **Multi-client token bootstrap** — automatically extracts Figma MCP token from Claude Code, Codex, Windsurf, or other supported clients
 
 ---
 
@@ -81,7 +81,7 @@ The skill extracts the Figma MCP token from whichever supported client you alrea
 node ~/.openclaw/skills/figma-agent/scripts/bootstrap-token.mjs
 ```
 
-This scans Claude Code, Codex, and Windsurf credential stores, refreshes the token if needed, and writes it to your OpenClaw config under `mcp.servers.figma`.
+Scans supported MCP client credential stores (Claude Code, Codex, Windsurf, and others), refreshes the token if needed, and writes it to your OpenClaw config under `mcp.servers.figma`.
 
 Then restart the gateway:
 
@@ -145,7 +145,7 @@ All 17 official Figma Remote MCP tools are available. See [`references/figma-api
 
 ## Architecture
 
-Read operations go direct via the Figma Remote MCP server. Write operations are routed through a Claude Code ACP session (which has Figma MCP connected and all required skills loaded):
+Read operations go direct via the Figma Remote MCP server. Write operations are routed through an ACP coding session (Claude Code, Codex, or another supported agent with Figma MCP connected):
 
 ```
 User prompt
@@ -153,12 +153,12 @@ User prompt
     ▼
 OpenClaw Agent
     ├── Read/Inspect ──► figma-mcp.mjs ──► mcp.figma.com ──► Figma file
-    └── Write/Create ──► Claude Code (ACP) ──► Figma MCP skills ──► Figma canvas
+    └── Write/Create ──► ACP Agent (with Figma MCP) ──► Figma canvas
 ```
 
 This hybrid approach means:
 - Reads are fast and lightweight (direct MCP call)
-- Writes use the full Figma skill set that Claude Code has pre-loaded
+- Writes use the full Figma MCP skill set available to the ACP agent
 - The user sees one unified skill, not two systems
 
 ---
@@ -175,7 +175,7 @@ Current limitations as of Figma Remote MCP (April 2026). Source: [Figma Write to
 - **`saveVersionHistoryAsync` not available** in Remote MCP sandbox
 - **`figma.variables.getVariableById()` not available** — use IDs from `get_variable_defs` + `setBoundVariableForPaint`
 - **SVG/vector creation** not supported via Plugin API in this context — clone existing vectors from the file
-- **Write to canvas** only available with approved MCP clients (Claude Code, Cursor, VS Code, Codex, etc.)
+- **Write to canvas** only available with approved MCP clients (Claude Code, Cursor, VS Code, Codex, and others — see [Figma MCP docs](https://help.figma.com/hc/en-us/articles/32132100833559))
 - **Token auth** requires one-time bootstrap from a supported Figma MCP client (no direct OAuth for custom clients yet)
 
 ---

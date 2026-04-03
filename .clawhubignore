@@ -1,5 +1,0 @@
-node_modules/
-state/
-sdk-auth-test.mjs
-auth.mjs
-*.log
