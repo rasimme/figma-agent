@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.1] - 2026-04-03
+
+### Fixed
+- Removed legacy OAuth experiment scripts (`auth.mjs`, `sdk-auth-test.mjs`) from repo
+- Corrected Figma Remote MCP link in README (→ official help docs)
+- Made all ACP/write-path references provider-agnostic (Claude Code, Codex, or any supported ACP agent)
+- Removed `.clawhubignore` from public git tracking (added to `.gitignore`)
+- Added `displayName: "Figma Agent"` to `package.json` for correct ClawHub display name
+
 ## [0.1.0] - 2026-04-03
 
 ### Added

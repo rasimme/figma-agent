@@ -7,7 +7,7 @@
 
 <p align="center">
   <a href="https://github.com/rasimme/figma-agent/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"></a>
-  <a href="https://github.com/rasimme/figma-agent/blob/main/CHANGELOG.md"><img src="https://img.shields.io/badge/version-v0.1.0-blue.svg" alt="Version"></a>
+  <a href="https://github.com/rasimme/figma-agent/blob/main/CHANGELOG.md"><img src="https://img.shields.io/badge/version-v0.1.1-blue.svg" alt="Version"></a>
   <a href="https://clawhub.ai"><img src="https://img.shields.io/badge/ClawHub-skill-purple.svg" alt="ClawHub"></a>
 </p>
 
