@@ -94,7 +94,7 @@ This hybrid model keeps inspection fast while preserving a stronger execution pa
 
 ### Install
 
-**Via ClawHub:**
+**Via ClawHub (recommended):**
 
 ```bash
 clawhub install figma-agent
@@ -125,7 +125,7 @@ openclaw gateway restart
 
 ### Verify
 
-Check that Figma MCP is configured in `~/.openclaw/openclaw.json` under `mcp.servers.figma`, then try a simple read action such as a screenshot or metadata request.
+Check that Figma MCP is configured in `~/.openclaw/openclaw.json` under `mcp.servers.figma`, then try a simple read action such as `get_screenshot` or `get_metadata`.
 
 ---
 
@@ -163,7 +163,7 @@ This matters especially on Telegram, where inline base64 is not the same as a na
 
 ## Tool coverage
 
-The skill supports the official Figma Remote MCP toolset for inspection and canvas operations, including:
+The skill supports the official Figma Remote MCP toolset for inspection and canvas operations. Commonly used tools include:
 
 - `get_design_context`
 - `get_screenshot`
@@ -193,6 +193,7 @@ Current known constraints:
 - **Some Plugin API behavior differs in Remote MCP** — see [`references/plugin-api-gotchas.md`](references/plugin-api-gotchas.md)
 - **Image delivery works best through local file output + `MEDIA:`**
 - **State variants should usually duplicate and edit existing screens rather than rebuild from scratch**
+- **Playbooks guide the agent, not ACP automatically** — critical execution constraints must still be injected into ACP prompts when relevant
 
 ---
 

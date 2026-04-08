@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.0] - 2026-04-09
+
+### Added
+- Structured workflow documentation for the current skill architecture, including workflow selection, prompting patterns, copy-and-edit guidance, and state-variant handling
+- Image Delivery documentation for local screenshot output via `--out` and chat delivery via `MEDIA:<path>`
+- Install note in `SKILL.md` and clearer routing guidance between abridged skill routing and full workflow selection docs
+
+### Changed
+- Rewrote `README.md` to reflect the current workflow-driven product surface instead of presenting the skill as a thin MCP wrapper
+- Surfaced the state-variant decision earlier in the native screen generation flow
+- Added dedicated Copy + Edit prompting guidance
+- Strengthened routing and hard-rule language around component-instance-first behavior
+
 ## [0.1.2] - 2026-04-03
 
 ### Changed
