@@ -6,37 +6,31 @@ Production-ready screen creation in native Figma using design-system variables, 
 
 ---
 
-## ⚠️ Positionierung: Immer Section-Relativ!
+## ⚠️ Section-Relative Positioning
 
-**Dieser Fehler passiert bei jedem neuen Screen, der auf einem bestehenden basiert.**
+If a new screen is based on an existing one inside a Section or Frame, coordinates must stay relative to the same parent container, not the page.
 
-**Das Problem:**
-Figma-Koordinaten sind immer relativ zum direkten Parent-Container. Wenn der Ursprungs-Screen in einer Section liegt, gelten seine x/y-Werte für die Section — nicht für die Page.
+Authoritative rule: [core-rules.md](../core-rules.md) — Conditional Rules: Section-Relative Positioning.
 
-Beispiel:
-- Section `v_04` liegt auf der Page bei `(x=11779, y=10307)`
-- Ursprungs-Screen liegt in der Section bei `(x=0, y=0)` lokal
-- CC sieht "Screen bei y=10307" → interpretiert das als Page-y=10307
-- → Neuer Screen landet auf Page-Ebene, nicht in der Section
+**Concrete failure case:**
+- Section `v_04` is on the page at `(x=11779, y=10307)`
+- Source screen lives inside that Section
+- CC reads `y=10307` as a page coordinate instead of a local coordinate
+- Result: the new screen lands on the page, not inside the Section
 
-**Die Regel:**
-> Wenn der Ursprungs-Screen in einer Section / in einem Frame liegt: ALLE Positionswerte müssen relativ zur Section berechnet werden, nicht zur Page.
+**Validation check:** After building, confirm the new screen is actually a child of the intended Section/Frame.
 
-**Vorgehen:**
-1. Finde den Parent-Container des Ursprungs-Screens (Section oder Frame)
-2. Hole die absolute Position des Parent-Containers auf der Page
-3. Berechne den lokalen Offset: `localX = screenX - parentX`, `localY = screenY - parentY`
-4. Der neue Screen bekommt: `parentX + localX + gap`, `parentY + localY`
+---
 
-**Konkret (aus unserem Workflow):**
-```
-Ursprung: Section v_04 (1416:16376) auf Page bei (11779, 10307)
-Ursprungs-Screen: in Section bei y=10307 lokal
-Ziel: 100px unter dem Ursprung in der gleichen Section
-→ Neuer Screen: x=11779, y=11482 (10307 + 100 + 75 offset)
-```
+## Step 0: Check for State Variant First
 
-**Check:** Nach dem Bau — ist der neue Screen wirklich inside/childOf der Section, nicht auf der Page?
+Before planning a rebuild, decide whether this is actually a **state/step/variant** of an existing screen.
+
+- If the new screen keeps most of the same shell/layout, prefer **Copy + Edit**
+- If the structure changes substantially, continue with a fresh build flow
+- If using Copy + Edit, also trigger the Section-Relative Positioning rule from [core-rules.md](../core-rules.md)
+
+See [workflow-selection.md](../workflow-selection.md) — Screen State Variants: Copy + Edit vs Rebuild.
 
 ---
 

@@ -24,6 +24,8 @@ Changing or creating something? → Start a CC session. Follow the matching play
 
 **First:** Determine the user's intent, then follow the matching path.
 
+This is an abridged routing summary. For the full matrix and decision logic, see [references/workflow-selection.md](references/workflow-selection.md).
+
 → Full routing matrix: [references/workflow-selection.md](references/workflow-selection.md)
 
 | Intent | Path | Route |
@@ -127,6 +129,16 @@ Before writing any `use_figma` code, know these failure modes:
 Key patterns: variable-first code structure, section-by-section execution, explicit design-system usage, validation loops, error recovery framing.
 
 ---
+
+## Install / Setup
+
+If dependencies are missing, install them from the skill repo root:
+
+```bash
+npm install
+```
+
+Then run one-time bootstrap:
 
 ## Setup (One-Time Bootstrap)
 

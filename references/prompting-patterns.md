@@ -201,7 +201,37 @@ State the parent container ID and local offsets explicitly before writing.
 
 ---
 
-## 10. Error Recovery Framing
+## 10. Copy + Edit Prompting
+
+When creating a next step, alternate state, or close variant of an existing screen, prompt for **duplicate first, then edit the delta**.
+
+**Pattern:**
+1. identify the source node/frame
+2. duplicate or copy it
+3. place it relative to the same parent container
+4. change only the required delta
+5. validate the result
+
+**Prompt snippet:**
+```text
+This is a state/step variant of an existing screen.
+Do not rebuild from scratch if the shell/layout is already correct.
+Duplicate the source screen, keep it in the same parent container, place it with explicit relative positioning, then edit only the delta.
+Preserve working component instances, variables, and auto-layout unless a specific change is required.
+```
+
+**Delta checklist:**
+- content/text changes
+- state changes (active tab, expanded accordion, selected control)
+- added or removed elements
+- CTA changes
+- small layout adjustments only where needed
+
+**Why:** This keeps good structure intact and reduces regressions from unnecessary rebuilds.
+
+---
+
+## 11. Error Recovery Framing
 
 When an error occurs, structure the recovery explicitly:
 
