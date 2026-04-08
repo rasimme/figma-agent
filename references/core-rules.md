@@ -1,0 +1,120 @@
+# Core Rules
+
+Universal rules that apply across all Figma Agent workflows. These are non-negotiable unless explicitly overridden for exploratory/prototype work.
+
+---
+
+## Hard Rules
+
+### 1. Validate After Write
+
+Every meaningful `use_figma` write must be followed by validation — either `get_screenshot` or `get_metadata` on the affected nodes. Never assume a write succeeded; confirm visually or structurally.
+
+### 2. Read -> Understand -> Fix -> Retry
+
+When a `use_figma` call fails or produces unexpected results:
+1. **Read** the error message or screenshot carefully.
+2. **Understand** what went wrong — consult [plugin-api-gotchas.md](plugin-api-gotchas.md) for known failure patterns.
+3. **Fix** the specific issue in the code.
+4. **Retry** with the corrected code.
+
+Never blindly retry the same code. Never rebuild from scratch as a first response to a targeted issue.
+
+### 3. Explicit Over Implicit
+
+State everything explicitly in `use_figma` calls:
+- Which variables/tokens to use (by name)
+- Which components to instantiate (by key/name)
+- Layout mode (auto-layout direction, padding, gap)
+- Color values as variable bindings, not raw hex
+
+The model performs best when nothing is left to inference.
+
+### 4. Design-System-First
+
+Before creating any visual element, check what already exists:
+- Search local variables and styles in the current file
+- Check Code Connect mappings if available
+- Search connected libraries via `search_design_system`
+- Only create raw/hardcoded values as a last resort
+
+### 5. Section-by-Section Execution
+
+Large screens and complex layouts must be built incrementally, not in a single monolithic call. Break work into logical sections (header, content area, sidebar, footer) and build/validate each before moving on.
+
+---
+
+## Batch-Write Heuristic
+
+One logical section per `use_figma` call.
+
+| Approach | Assessment | Why |
+|----------|-----------|-----|
+| Full screen in one call | **Too large** | Fragile, hard to debug, partial failures waste everything |
+| Individual nodes one by one | **Too small** | High MCP overhead, slow, unnecessary round-trips |
+| **1-3 semantically related components/groups** per call | **Sweet spot** | Debuggable, recoverable, efficient |
+
+After each meaningful write: **always validate**, never proceed blind.
+
+**Grouping examples:**
+- A card component with its icon, title, and body = 1 call
+- A navigation bar with logo, links, and actions = 1 call
+- Header section + hero section = 2 calls (separate validation points)
+
+---
+
+## SVG Decision Matrix
+
+| Situation | Action | Rationale |
+|-----------|--------|-----------|
+| SVG from external tool (logo, icon font) | **Preserve as-is** | Original fidelity matters more than editability |
+| SVG as layout proxy (HTML-to-Figma output) | **Evaluate** - often replace with native nodes | Auto-layout compatibility, editability, variable binding |
+| SVG in design-system context | **Flatten** or convert to component | Reusability, variable binding support |
+| Animation/interaction needed | **Use native nodes** | SVG cannot participate in Figma prototyping |
+
+When in doubt: native nodes are safer for production-quality work. SVG is acceptable for speed in exploratory contexts.
+
+---
+
+## Local-Context-First
+
+Context preference order — always exhaust higher-priority sources before reaching outward:
+
+1. **Current frame/selection** — nodes, styles, and variables already present
+2. **Current file** — local variables, local styles, other pages/frames in the same file
+3. **Code Connect mappings** — component-to-code mappings where configured
+4. **Library search** — external/connected libraries via `search_design_system` (only when 1-3 are insufficient)
+
+This reduces unnecessary API calls, avoids duplicate definitions, and stays consistent with the file's existing design decisions.
+
+---
+
+## Cost Awareness
+
+MCP calls carry token and latency overhead. Minimize unnecessary calls:
+
+- Batch semantically related operations (see Batch-Write Heuristic above)
+- Use `get_metadata` for structural inspection before `get_design_context` on large trees
+- Cache knowledge from earlier reads within the same session — don't re-fetch what you already know
+- Avoid speculative `search_design_system` calls; search with specific intent
+
+---
+
+## Code Connect Awareness
+
+When Code Connect mappings exist for a file:
+- `get_design_context` will return mapped codebase components — use them directly
+- Respect the mapping: instantiate the mapped component, don't recreate it from scratch
+- When creating new components, consider whether a Code Connect mapping should be added
+- See [figma-api.md](figma-api.md) for Code Connect tool details
+
+---
+
+## Native vs HTML-to-Figma Decision
+
+See [workflow-selection.md](workflow-selection.md) for the full routing matrix. Quick rule:
+
+- **Native Figma** (default): production-ready, design-system-aligned, variable-bound, fully editable
+- **HTML-to-Figma**: rapid exploration, layout speed, complex CSS layouts that are tedious to replicate natively
+
+HTML-to-Figma output requires cleanup for production use. It does not automatically use design-system variables or components. See [playbooks/html-to-figma-prototyping.md](playbooks/html-to-figma-prototyping.md) for the full workflow.
