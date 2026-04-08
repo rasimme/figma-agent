@@ -64,6 +64,30 @@ Follow [Local-Context-First](../core-rules.md) order:
 
 ---
 
+## State-Screen Workflow
+
+When the requested screen is primarily a new **state/step/variant** of an existing screen, do not default to rebuilding.
+
+**Preferred flow:**
+1. Identify the reference screen
+2. Decide whether the new screen is mostly the same structure
+3. If yes: copy/duplicate the reference screen
+4. Place the copy correctly relative to the same parent container/section
+5. Edit only the delta: changed content, changed state, added/removed elements
+6. Validate the result
+
+**Use this workflow when:**
+- building step 2 from step 1
+- creating alternate states of the same flow
+- keeping the same shell/layout while changing internals
+
+**Do not use this workflow when:**
+- the layout is substantially different
+- the original screen is poorly built and should not be propagated
+- a clean rebuild is lower risk
+
+---
+
 ## Step 3: Plan the Sections
 
 Decompose the screen into buildable sections. Each section will be one `use_figma` call.

@@ -22,6 +22,36 @@ Routing matrix for selecting the right workflow path based on user intent and jo
 
 ---
 
+## Screen State Variants: Copy + Edit vs Rebuild
+
+When creating a new screen that is mostly a different **state/step/variant** of an existing screen, default to **Copy + Edit** instead of rebuilding from scratch.
+
+### Choose Copy + Edit When:
+
+- The new screen keeps the same overall layout structure
+- Most sections remain the same and only content/states change
+- You are creating a next step, alternate state, or close variant of an existing screen
+- Duplicating and editing is lower risk than rebuilding
+
+### Choose Rebuild When:
+
+- The information architecture changes substantially
+- The layout structure is materially different
+- The source screen is technically poor and should not be propagated
+- The new screen is only loosely related to the original
+
+### Copy + Edit Rule
+
+If roughly 60 to 90 percent of the screen is the same, prefer:
+1. duplicate/copy the reference screen
+2. place it correctly relative to its parent container
+3. edit only the delta
+4. validate the changed result
+
+This avoids unnecessary rebuilds and preserves working component structure, tokens, and layout decisions.
+
+---
+
 ## Native vs HTML-to-Figma Decision
 
 ### Choose Native When:

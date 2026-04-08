@@ -21,7 +21,28 @@ Never assume the model will use design-system tokens. State them explicitly in e
 
 ---
 
-## 2. Variable-First Behavior
+## 2. Existing Components Check
+
+Before any build/edit write, explicitly decide whether the UI should be instantiated from existing components or built locally.
+
+**Checklist:**
+- Does a matching design-system component already exist?
+- Should this be a real instance instead of a local frame recreation?
+- Are icons, typography, controls, and alerts coming from existing components?
+
+**Prompt snippet:**
+```text
+Use existing design-system components as real instances wherever available.
+Do not visually recreate existing components with local frames.
+For each element, check whether a matching component already exists before building anything new.
+Only build locally if no suitable component exists.
+```
+
+**Why:** Without this constraint, the model often recreates the look of existing components instead of using the actual design-system instances.
+
+---
+
+## 3. Variable-First Behavior
 
 Structure `use_figma` code to resolve variables before creating visual elements.
 
@@ -50,7 +71,7 @@ rect.fills = fills;
 
 ---
 
-## 3. Section-by-Section Execution
+## 4. Section-by-Section Execution
 
 Break complex screens into discrete sections. Each section is a separate `use_figma` call followed by validation.
 
@@ -66,7 +87,7 @@ Break complex screens into discrete sections. Each section is a separate `use_fi
 
 ---
 
-## 4. HTML-to-Figma Framing
+## 5. HTML-to-Figma Framing
 
 When using `generate_figma_design` for HTML-to-Figma:
 
@@ -88,7 +109,7 @@ See [workflow-selection.md](workflow-selection.md) — Native vs HTML-to-Figma D
 
 ---
 
-## 5. Validation Loop Framing
+## 6. Validation Loop Framing
 
 After each write, run a validation step. Structure it as a tight loop, not an afterthought.
 
@@ -110,7 +131,7 @@ Write section -> get_screenshot -> evaluate against intent -> fix if needed -> m
 
 ---
 
-## 6. Local-Context-First Prompting
+## 7. Local-Context-First Prompting
 
 Before reaching for external search, explicitly query the local file.
 
@@ -125,7 +146,7 @@ Step 3: Only if 1-2 insufficient: search_design_system(query, fileKey)
 
 ---
 
-## 7. Reducing Model Drift
+## 8. Reducing Model Drift
 
 Techniques to keep `use_figma` code focused and correct:
 
@@ -153,7 +174,7 @@ frame.itemSpacing = 16;
 
 ---
 
-## 8. Conditional Spawn Checklist
+## 9. Conditional Spawn Checklist
 
 Before spawning a CC session for write/build work, run a short conditional check.
 
@@ -180,7 +201,7 @@ State the parent container ID and local offsets explicitly before writing.
 
 ---
 
-## 9. Error Recovery Framing
+## 10. Error Recovery Framing
 
 When an error occurs, structure the recovery explicitly:
 

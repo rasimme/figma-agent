@@ -38,7 +38,19 @@ Before creating any visual element, check what already exists:
 - Search connected libraries via `search_design_system`
 - Only create raw/hardcoded values as a last resort
 
-### 5. Section-by-Section Execution
+### 5. Component Instance First
+
+If a suitable existing design-system component already exists, use it as a **real instance** instead of visually recreating it with local frames.
+
+**Required behavior:**
+- Prefer existing component instances for tabs, buttons, radios, alerts, cards, icons, typography, and similar UI primitives
+- Do not build local replacement frames for components that already exist in the file or connected design system
+- Only build locally when no suitable component exists
+- When unsure, inspect/search first, then build
+
+This rule applies across build, edit, cleanup, and state-variant workflows whenever the design system already provides the needed UI.
+
+### 6. Section-by-Section Execution
 
 Large screens and complex layouts must be built incrementally, not in a single monolithic call. Break work into logical sections (header, content area, sidebar, footer) and build/validate each before moving on.
 
