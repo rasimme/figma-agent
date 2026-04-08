@@ -40,6 +40,58 @@ Changing or creating something? → Start a CC session. Follow the matching play
 
 ---
 
+## Image Delivery (MANDATORY after every write)
+
+Screenshots must reach the user as Telegram photo attachments — not as inline base64 text.
+
+**Workflow:**
+
+1. **Save to file** — use `--out <path>` flag so the PNG is written directly:
+
+   ```bash
+   node scripts/figma-mcp-cli.mjs get_screenshot \
+     fileKey=<fileKey> nodeId=<nodeId> scale=2 \
+     --out ~/workspace-dev-botti/screenshots/<name>.png
+   ```
+
+2. **Deliver to user** — put `MEDIA:<path>` on its own line in your reply:
+
+   ```
+   Hier ist der aktuelle Stand:
+   MEDIA:screenshots/validate.png
+   ```
+
+   OpenClaw extracts every `MEDIA:` line and sends the file as a native Telegram photo.
+   The path is workspace-relative (`screenshots/...`) or absolute.
+
+
+**Two different tools — don't mix them up:**
+
+| Tool | Purpose | Used for Image Delivery? |
+|------|---------|--------------------------|
+| `image` tool | Send to Vision model for analysis | ❌ No — analysis only |
+| `MEDIA:<path>` in reply text | Send as Telegram attachment | ✅ Yes — actual delivery |
+
+**Why `--out`?**
+Without it, the Figma API returns base64-encoded JSON → renders as inline text in Telegram, not a photo. The `--out` flag decodes and writes a real PNG file that `MEDIA:` sends as an attachment.
+
+**Screenshot directory:** `~/workspace-dev-botti/screenshots/` (create if missing)
+
+**Validation pattern (every write operation):**
+
+```bash
+# After use_figma call — save screenshot → MEDIA: in reply
+node scripts/figma-mcp-cli.mjs get_screenshot fileKey=<key> nodeId=<id> scale=2 \
+  --out ~/workspace-dev-botti/screenshots/validate.png
+# Reply with:
+# MEDIA:screenshots/validate.png
+```
+
+**Stitch comparison:**
+Stitch delivers via `MEDIA:<screenshotUrl>` (HTTP URL). Figma delivers via `MEDIA:<local-path>` (file). Mechanism identical — only the source differs.
+
+---
+
 ## Hard Rules (Top 5)
 
 These are non-negotiable. Full rule set: [references/core-rules.md](references/core-rules.md)
