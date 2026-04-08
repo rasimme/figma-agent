@@ -12,21 +12,31 @@ metadata:
 
 Figma Remote MCP integration for OpenClaw. Reads designs via `figma__*` tools; creates and edits via CC sessions using `mcp__figma__*` tools.
 
+## Route First
+
+**Read/Inspect** → call `figma__*` tools directly. No CC session needed.  
+**Write/Create/Edit** → requires CC session via `mcp__figma__*` tools.
+
+Seeing or understanding a design? → Direct. Do not start a session.  
+Changing or creating something? → Start a CC session. Follow the matching playbook below.
+
 ## Workflow Routing
 
 **First:** Determine the user's intent, then follow the matching path.
 
 → Full routing matrix: [references/workflow-selection.md](references/workflow-selection.md)
 
-| Intent | Path |
-|--------|------|
-| Build a production screen | [Native Screen Generation](references/playbooks/native-screen-generation.md) |
-| Rapid prototype / explore | [HTML-to-Figma Prototyping](references/playbooks/html-to-figma-prototyping.md) |
-| Fix/adjust existing design | [Screen Review Loop](references/playbooks/screen-review-loop.md) |
-| Tokenize colors to variables | [Color Tokenization](references/playbooks/color-tokenization.md) |
-| Read-only inspection | Use `get_design_context` / `get_screenshot` / `get_metadata` directly |
-| Map components to code | Load `figma:figma-code-connect` skill first |
-| Build/update design library | Load `figma:figma-generate-library` + `figma:figma-use` skills first |
+| Intent | Path | Route |
+|--------|------|-------|
+| Build a production screen | [Native Screen Generation](references/playbooks/native-screen-generation.md) | CC |
+| Prototype from HTML/URL | [HTML-to-Figma Prototyping](references/playbooks/html-to-figma-prototyping.md) | CC |
+| Read-only inspection | `get_design_context` / `get_screenshot` | Direct |
+| Review + Edit a screen | [Screen Review Loop](references/playbooks/screen-review-loop.md) | CC |
+| Apply design tokens | [Color Tokenization](references/playbooks/color-tokenization.md) | CC |
+| Import + clean up Stitch export | [Stitch Import Cleanup](references/playbooks/stitch-import-cleanup.md) | CC |
+| Discover variables/styles | [Variable Discovery](references/playbooks/variable-discovery.md) | Direct |
+| Audit design system | [Design System Cleanup](references/playbooks/design-system-cleanup.md) | CC |
+| Inspect finished design | [Design Audit Review](references/playbooks/design-audit-review.md) | Direct |
 
 ---
 
@@ -61,17 +71,6 @@ Before writing any `use_figma` code, know these failure modes:
 → Full patterns: [references/prompting-patterns.md](references/prompting-patterns.md)
 
 Key patterns: variable-first code structure, section-by-section execution, explicit design-system usage, validation loops, error recovery framing.
-
----
-
-## Architecture: Read/Write Split
-
-| Context | Tools | When |
-|---------|-------|------|
-| **OpenClaw native** | `figma__*` (read tools) | Review, inspect, analyse, fetch data |
-| **CC session** | `mcp__figma__*` (write tools) | Create designs, edit canvas, manage libraries |
-
-**Why:** Figma MCP auth uses OAuth 2.0 via Dynamic Client Registration. CC's token is bootstrapped into OpenClaw's MCP config for read access. Write operations require plugin API execution inside a CC session.
 
 ---
 
