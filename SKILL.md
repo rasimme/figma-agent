@@ -29,6 +29,7 @@ Changing or creating something? → Start a CC session. Follow the matching play
 | Intent | Path | Route |
 |--------|------|-------|
 | Build a production screen | [Native Screen Generation](references/playbooks/native-screen-generation.md) | CC |
+| Create next step / state variant from an existing screen | [Native Screen Generation](references/playbooks/native-screen-generation.md) | CC |
 | Prototype from HTML/URL | [HTML-to-Figma Prototyping](references/playbooks/html-to-figma-prototyping.md) | CC |
 | Read-only inspection | `get_design_context` / `get_screenshot` | Direct |
 | Review + Edit a screen | [Screen Review Loop](references/playbooks/screen-review-loop.md) | CC |
@@ -92,7 +93,7 @@ Stitch delivers via `MEDIA:<screenshotUrl>` (HTTP URL). Figma delivers via `MEDI
 
 ---
 
-## Hard Rules (Top 5)
+## Hard Rules (Top 6)
 
 These are non-negotiable. Full rule set: [references/core-rules.md](references/core-rules.md)
 
@@ -100,7 +101,8 @@ These are non-negotiable. Full rule set: [references/core-rules.md](references/c
 2. **Read → Understand → Fix → Retry** — never blindly retry failed code, never rebuild as first response.
 3. **Explicit over implicit** — name exact variables, components, layout modes. Leave nothing to inference.
 4. **Design-system-first** — check local variables, styles, Code Connect, then libraries before creating anything raw.
-5. **Section-by-section** — one logical section per `use_figma` call, validate between sections.
+5. **Component-instance-first** — if a suitable existing design-system component exists, instantiate it instead of recreating it with local frames.
+6. **Section-by-section** — one logical section per `use_figma` call, validate between sections.
 
 ---
 
