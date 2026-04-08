@@ -6,6 +6,40 @@ Production-ready screen creation in native Figma using design-system variables, 
 
 ---
 
+## ⚠️ Positionierung: Immer Section-Relativ!
+
+**Dieser Fehler passiert bei jedem neuen Screen, der auf einem bestehenden basiert.**
+
+**Das Problem:**
+Figma-Koordinaten sind immer relativ zum direkten Parent-Container. Wenn der Ursprungs-Screen in einer Section liegt, gelten seine x/y-Werte für die Section — nicht für die Page.
+
+Beispiel:
+- Section `v_04` liegt auf der Page bei `(x=11779, y=10307)`
+- Ursprungs-Screen liegt in der Section bei `(x=0, y=0)` lokal
+- CC sieht "Screen bei y=10307" → interpretiert das als Page-y=10307
+- → Neuer Screen landet auf Page-Ebene, nicht in der Section
+
+**Die Regel:**
+> Wenn der Ursprungs-Screen in einer Section / in einem Frame liegt: ALLE Positionswerte müssen relativ zur Section berechnet werden, nicht zur Page.
+
+**Vorgehen:**
+1. Finde den Parent-Container des Ursprungs-Screens (Section oder Frame)
+2. Hole die absolute Position des Parent-Containers auf der Page
+3. Berechne den lokalen Offset: `localX = screenX - parentX`, `localY = screenY - parentY`
+4. Der neue Screen bekommt: `parentX + localX + gap`, `parentY + localY`
+
+**Konkret (aus unserem Workflow):**
+```
+Ursprung: Section v_04 (1416:16376) auf Page bei (11779, 10307)
+Ursprungs-Screen: in Section bei y=10307 lokal
+Ziel: 100px unter dem Ursprung in der gleichen Section
+→ Neuer Screen: x=11779, y=11482 (10307 + 100 + 75 offset)
+```
+
+**Check:** Nach dem Bau — ist der neue Screen wirklich inside/childOf der Section, nicht auf der Page?
+
+---
+
 ## Step 1: Understand the Job
 
 Before touching the canvas:
