@@ -44,6 +44,39 @@ Large screens and complex layouts must be built incrementally, not in a single m
 
 ---
 
+## ⚠️ Conditional Rules
+
+These rules apply only when their trigger condition is met — not on every workflow.
+
+---
+
+### Section-Relative Positioning
+
+**Trigger:** Building a new screen that is based on / extrapolated from an existing screen, where positioning values are derived from the source screen.
+
+**Trigger examples:**
+- Clone screen A and place it below A
+- Create "Step 2" based on "Step 1" layout
+- Duplicate a card layout to create a variant
+
+**Non-trigger examples:**
+- Building a new screen from scratch with no reference screen
+- Inspecting/reading an existing screen without creating new nodes
+
+**Rule:**
+> Figma coordinates are always relative to the **direct parent container**. If the source screen is inside a Section or Frame, the new screen must use coordinates relative to that same Section — not absolute page coordinates.
+
+**When triggered, before building:**
+1. Identify the parent container of the source screen (Section/Frame)
+2. Get the container's absolute page position
+3. Calculate local offset: `localX = sourceX - containerX`, `localY = sourceY - containerY`
+4. Apply the intended positioning (e.g., +100px below) as an offset from the container, not from page origin
+5. **Explicitly state the parent container ID and local coordinates in the `use_figma` prompt**
+
+**Check:** After creation — is the new screen actually inside/child-of the same section as the source, not on the page?
+
+---
+
 ## Batch-Write Heuristic
 
 One logical section per `use_figma` call.

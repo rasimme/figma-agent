@@ -153,7 +153,34 @@ frame.itemSpacing = 16;
 
 ---
 
-## 8. Error Recovery Framing
+## 8. Conditional Spawn Checklist
+
+Before spawning a CC session for write/build work, run a short conditional check.
+
+**Checklist:**
+- Is this a brand new screen from scratch?
+  - If yes: no positioning carry-over rule needed
+- Is this a new screen or new node based on an existing screen/node?
+  - If yes: trigger **Section-Relative Positioning** from [core-rules.md](core-rules.md)
+  - Include in prompt:
+    - parent container ID (Section/Frame)
+    - whether source coordinates are local or page-level
+    - intended relative placement (below, right of, aligned with)
+    - target local offsets
+
+**Prompt insert when triggered:**
+```
+Positioning rule:
+This new screen/node is based on an existing one inside a parent container.
+Use coordinates relative to the same parent container, not absolute page coordinates.
+State the parent container ID and local offsets explicitly before writing.
+```
+
+**Why:** This rule is not always needed. Making it conditional keeps prompts lean, while still catching the exact case that repeatedly causes misplaced screens.
+
+---
+
+## 9. Error Recovery Framing
 
 When an error occurs, structure the recovery explicitly:
 
