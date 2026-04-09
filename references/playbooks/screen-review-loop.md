@@ -120,13 +120,32 @@ Compare against:
 
 ---
 
-## Step 6: Confirm Completion
+## Step 6: Run the Done Gate Before Reporting Success
 
-When all identified issues are resolved:
+When all identified issues appear resolved, do not report success yet. Run the applicable gates from [core-rules.md](../core-rules.md) — Validation Gates.
 
-1. Final `get_screenshot` of the full frame
-2. Brief summary to the user: what was changed and why
-3. If variable bindings were added/changed, confirm with `get_variable_defs`
+### Required check sequence
+
+1. **Structural checks first**
+   - `get_metadata(fileKey, nodeId)` to confirm the edited nodes are structurally correct
+   - verify parent container, node hierarchy, layout settings, instance integrity, and text content as needed
+2. **Variable checks when relevant**
+   - if colors/tokens/variables were changed, confirm with `get_variable_defs`
+3. **Visual confirmation second**
+   - final `get_screenshot` of the full frame
+   - confirm the requested visual issue is actually resolved and no regression was introduced
+4. **Only then summarize completion**
+
+### Minimum completion questions
+
+Before saying "done," answer:
+- Is the originally requested issue actually fixed?
+- Is there any placeholder/default content still present?
+- Did the fix preserve real component instances where required?
+- Did the fix introduce a new regression elsewhere?
+- Does the screenshot confirm the intended final state?
+
+If any answer is uncertain, do one more read/fix pass instead of reporting success.
 
 ---
 

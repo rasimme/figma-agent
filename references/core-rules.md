@@ -4,7 +4,7 @@ Universal rules that apply across all Figma Agent workflows. These are non-negot
 
 ---
 
-## Hard Rules
+## Always-On Rules
 
 ### 1. Validate After Write
 
@@ -86,6 +86,68 @@ These rules apply only when their trigger condition is met — not on every work
 5. **Explicitly state the parent container ID and local coordinates in the `use_figma` prompt**
 
 **Check:** After creation — is the new screen actually inside/child-of the same section as the source, not on the page?
+
+---
+
+## Validation Gates
+
+Validation is not a vibe check. Before reporting success, run the applicable checks in order.
+
+### Check Order
+
+1. **Structural checks first** — confirm the build is technically correct
+2. **Visual confirmation second** — use screenshots to confirm the intended appearance
+3. **Only then report success**
+
+Do not rely on screenshots alone when structural checks are possible.
+
+### Structural Checks
+
+Use the lightest structural read that can prove the requirement:
+
+- `get_metadata` — verify node hierarchy, parent container, layout settings, instance status, text content
+- `get_variable_defs` — verify variable bindings where token usage matters
+- local node inspection via `use_figma` — verify that duplicated/copied nodes remained real instances when relevant
+
+### Common Validation Gates
+
+Apply only the checks that match the workflow and task.
+
+#### 1. Parent / Placement Gate
+- Is the new node inside the intended Section or Frame?
+- Does the parent container match the expected container?
+- If this was a relative-placement task, are local coordinates being interpreted relative to the correct parent?
+
+#### 2. Component Integrity Gate
+- Are required UI primitives still real component instances instead of detached or local recreations?
+- If this was a Copy + Edit task, did duplication preserve working component structure?
+- Was `clone()` / duplication behavior used rather than reconstructing the shell manually?
+
+#### 3. Content Completeness Gate
+- Do text nodes contain real intended content rather than placeholder/default text?
+- Were expected slot contents actually replaced?
+- Are state-specific labels, CTA text, and body copy correct?
+
+#### 4. Token / Variable Gate
+- Are the required fills, borders, or effects bound to variables where expected?
+- Were hardcoded values removed when tokenization or design-system alignment was required?
+
+#### 5. State Accuracy Gate
+- Does the requested UI state actually match the spec?
+- Examples: active tab, expanded accordion, selected control, disabled button, current step
+
+#### 6. Visual Confirmation Gate
+- After structural checks pass, does `get_screenshot` confirm that the layout, spacing, alignment, and visual state match the intended result?
+- Use screenshot review as confirmation, not as the sole source of truth.
+
+### If a Gate Fails
+
+Do not jump straight to rebuild.
+
+- **Cheap failures** — content swaps, wrong labels, missed state toggles, local spacing issues -> apply targeted fix and re-run the relevant gates
+- **Expensive failures** — fake component reconstruction, wrong parent container, structurally broken shell -> stop and decide whether a structural redo is cheaper than patching
+
+See [screen-review-loop.md](playbooks/screen-review-loop.md) for the operational review/fix cycle.
 
 ---
 

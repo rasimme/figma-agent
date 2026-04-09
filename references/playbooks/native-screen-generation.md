@@ -22,13 +22,16 @@ Authoritative rule: [core-rules.md](../core-rules.md) — Conditional Rules: Sec
 
 ---
 
-## Step 0: Check for State Variant First
+## Step 0: Hard Fork, State Variant or New Build
 
-Before planning a rebuild, decide whether this is actually a **state/step/variant** of an existing screen.
+Before planning a rebuild, answer this first:
 
-- If the new screen keeps most of the same shell/layout, prefer **Copy + Edit**
-- If the structure changes substantially, continue with a fresh build flow
-- If using Copy + Edit, also trigger the Section-Relative Positioning rule from [core-rules.md](../core-rules.md)
+> Is this new screen more than roughly 50% structurally identical to an existing screen?
+
+- **YES** -> go directly to [State-Screen Workflow](#state-screen-workflow). Do not continue into the fresh-build steps below.
+- **NO** -> continue to Step 1 and follow the normal new-screen build flow.
+
+If the answer is YES, also trigger the Section-Relative Positioning rule from [core-rules.md](../core-rules.md).
 
 See [workflow-selection.md](../workflow-selection.md) — Screen State Variants: Copy + Edit vs Rebuild.
 
@@ -64,21 +67,23 @@ When the requested screen is primarily a new **state/step/variant** of an existi
 
 **Preferred flow:**
 1. Identify the reference screen
-2. Decide whether the new screen is mostly the same structure
-3. If yes: copy/duplicate the reference screen
-4. Place the copy correctly relative to the same parent container/section
-5. Edit only the delta: changed content, changed state, added/removed elements
-6. Validate the result
+2. Duplicate the reference screen using a real copy/clone path that preserves working component structure
+3. Place the copy correctly relative to the same parent container/section
+4. Edit only the delta: changed content, changed state, added/removed elements
+5. Validate the result with structural checks first, then screenshot confirmation
 
 **Use this workflow when:**
 - building step 2 from step 1
 - creating alternate states of the same flow
 - keeping the same shell/layout while changing internals
+- preserving existing component instances is lower risk than rebuilding
 
 **Do not use this workflow when:**
 - the layout is substantially different
 - the original screen is poorly built and should not be propagated
 - a clean rebuild is lower risk
+
+**Critical copy rule:** Do not manually reconstruct the shell when this workflow applies. The point is to preserve working structure, instances, and layout decisions, then change only what is necessary.
 
 ---
 

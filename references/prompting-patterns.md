@@ -1,247 +1,229 @@
 # Prompting Patterns
 
-Operational prompt patterns for the Figma Agent. These are agent-facing — they define how the agent should structure its own `use_figma` calls and internal reasoning, not user-facing communication.
+Operational prompt patterns for the Figma Agent. These are agent-facing. They define how the controller should compose a lean execution brief for write/build work, not how to talk to the user.
+
+The goal is simple:
+- keep always-needed guidance short and stable
+- add extra instructions only when a real trigger condition applies
+- define completion criteria before execution starts
 
 ---
 
-## 1. Explicit Design-System Usage
+## Execution Brief Template
 
-Never assume the model will use design-system tokens. State them explicitly in every `use_figma` call.
+This is the controller artifact that should be produced before write/build execution.
+
+```text
+GOAL: [one sentence]
+CONSTRAINTS:
+- [2-4 task-specific constraints only]
+CONTEXT:
+- [file key, node IDs, parent container, component names, variable names, or state facts that matter]
+DONE WHEN:
+- [explicit completion criteria tied to the selected validation gates]
+```
+
+A good execution brief is specific, short, and weighted. It should not dump every known rule into the prompt.
+
+---
+
+## Always-In Prompt Elements
+
+These elements should be present in most write/build briefs unless the task is purely exploratory.
+
+### 1. Explicit Design-System Usage
+
+Never assume the model will use design-system tokens. State them explicitly.
 
 **Pattern:** Name the exact variables, components, and styles to use.
 
-```
-// Instead of: "create a blue button"
-// State: "create a button using component 'Button/Primary' with fill bound to variable 'colors/primary/500'"
+```text
+Use component 'Button/Primary' with fill bound to variable 'colors/primary/500'.
 ```
 
-**Why:** Implicit references ("use the primary color") resolve inconsistently. Explicit variable names eliminate drift.
-
-**Apply when:** Every write that involves colors, spacing, typography, or component instantiation.
+**Why:** Implicit references resolve inconsistently. Exact names reduce drift.
 
 ---
 
-## 2. Existing Components Check
+### 2. Existing Components Check
 
 Before any build/edit write, explicitly decide whether the UI should be instantiated from existing components or built locally.
 
-**Checklist:**
-- Does a matching design-system component already exist?
-- Should this be a real instance instead of a local frame recreation?
-- Are icons, typography, controls, and alerts coming from existing components?
-
-**Prompt snippet:**
+**Brief insert:**
 ```text
 Use existing design-system components as real instances wherever available.
 Do not visually recreate existing components with local frames.
-For each element, check whether a matching component already exists before building anything new.
 Only build locally if no suitable component exists.
 ```
 
-**Why:** Without this constraint, the model often recreates the look of existing components instead of using the actual design-system instances.
+**Why:** Without this constraint, the model often recreates the look of existing components instead of using actual instances.
 
 ---
 
-## 3. Variable-First Behavior
+### 3. Variable-First Behavior
 
-Structure `use_figma` code to resolve variables before creating visual elements.
+Resolve variables before creating visual elements.
 
-**Pattern:** Load variables at the top of the block, then reference them during node creation.
-
-```js
-// Step 1: Resolve variables
-const collections = await figma.variables.getLocalVariableCollectionsAsync();
-const colorCollection = collections.find(c => c.name === "Colors");
-const vars = [];
-for (const id of colorCollection.variableIds) {
-  vars.push(await figma.variables.getVariableByIdAsync(id));
-}
-const primaryFill = vars.find(v => v.name === "colors/primary/500");
-
-// Step 2: Create node with variable binding
-const rect = figma.createRectangle();
-const fills = [figma.util.solidPaint("#000000")]; // placeholder
-fills[0] = figma.variables.setBoundVariableForPaint(fills[0], primaryFill, "color");
-rect.fills = fills;
-```
+**Pattern:** Load variables first, then create/bind nodes.
 
 **Why:** Front-loading variable resolution prevents mid-block failures and makes the code self-documenting.
 
-**Apply when:** Any write involving design tokens. See also [plugin-api-gotchas.md#paint-binding](plugin-api-gotchas.md#paint-binding).
+See [plugin-api-gotchas.md#paint-binding](plugin-api-gotchas.md#paint-binding).
 
 ---
 
-## 4. Section-by-Section Execution
-
-Break complex screens into discrete sections. Each section is a separate `use_figma` call followed by validation.
-
-**Pattern:**
-1. Identify logical sections (header, content, sidebar, footer)
-2. Build section 1 -> validate with `get_screenshot`
-3. Build section 2 -> validate
-4. Continue until complete
-
-**Why:** Monolithic writes are fragile. A failure in section 3 does not destroy sections 1-2 if they were written and validated separately.
-
-**Apply when:** Any screen with 3+ distinct sections. See [core-rules.md](core-rules.md) — Batch-Write Heuristic.
-
----
-
-## 5. HTML-to-Figma Framing
-
-When using `generate_figma_design` for HTML-to-Figma:
-
-**Pattern:** Frame it as exploration, not production output.
-
-Internal reasoning:
-- "This is a rapid draft for layout reference"
-- "Output will need cleanup: variable binding, text resize, SVG evaluation"
-- "This is step 1; production quality requires follow-up passes"
-
-**Follow-up checklist after HTML-to-Figma:**
-1. Check text nodes for fixed sizing -> fix with `textAutoResize`
-2. Check colors for hardcoded hex -> map to variables
-3. Check SVGs -> evaluate per SVG Decision Matrix
-4. Check dimensions for decimal values -> round to integers
-5. Check for missing auto-layout -> add where appropriate
-
-See [workflow-selection.md](workflow-selection.md) — Native vs HTML-to-Figma Decision.
-
----
-
-## 6. Validation Loop Framing
-
-After each write, run a validation step. Structure it as a tight loop, not an afterthought.
-
-**Pattern:**
-```
-Write section -> get_screenshot -> evaluate against intent -> fix if needed -> move on
-```
-
-**Evaluation questions:**
-- Does the screenshot match the intended layout?
-- Are spacing and alignment correct?
-- Are the right colors/variables applied (check via `get_variable_defs` if uncertain)?
-- Are text nodes readable and properly sized?
-
-**If issues found:**
-- Targeted fix (not rebuild). See [core-rules.md](core-rules.md) — Read -> Understand -> Fix -> Retry.
-- Re-validate after fix.
-- Only rebuild if the structural approach is fundamentally wrong.
-
----
-
-## 7. Local-Context-First Prompting
+### 4. Local-Context-First Prompting
 
 Before reaching for external search, explicitly query the local file.
 
 **Pattern:**
-```
-Step 1: get_variable_defs(fileKey, nodeId) — what variables exist locally?
-Step 2: get_metadata(fileKey, nodeId) — what components/styles are already used?
-Step 3: Only if 1-2 insufficient: search_design_system(query, fileKey)
+```text
+Check local variables/styles/components first.
+Only search the library if the current file does not already provide what is needed.
 ```
 
-**Why:** External search costs API calls and may return results that conflict with what the file already uses. Local context is the ground truth for the current file.
+**Why:** Local context is the ground truth for the current file.
 
 ---
 
-## 8. Reducing Model Drift
+## Conditional Prompt Inserts
 
-Techniques to keep `use_figma` code focused and correct:
+These inserts should only appear when their trigger condition is actually met.
 
-**Be specific about parent-child relationships:**
-```js
-// State explicitly: "append card to container, then set FILL"
-container.appendChild(card);
-card.layoutSizingHorizontal = "FILL";
-```
+### 5. Section-Relative Positioning
 
-**State the expected outcome:**
-```js
-// "This should produce a 3-column grid with 16px gap"
-frame.layoutMode = "HORIZONTAL";
-frame.itemSpacing = 16;
-```
+**Trigger:** New screen/node is based on an existing screen/node inside a Section or Frame, and placement is derived from that reference.
 
-**Avoid open-ended generation:**
-- Don't: "create a nice-looking dashboard"
-- Do: "create a frame named 'Dashboard' with layoutMode VERTICAL, containing 3 child frames for header (64px height), content (FILL), and footer (48px height)"
-
-**Keep individual calls focused:**
-- One logical operation per call
-- Don't mix unrelated operations (e.g., creating a header AND binding colors on an unrelated component)
-
----
-
-## 9. Conditional Spawn Checklist
-
-Before spawning a CC session for write/build work, run a short conditional check.
-
-**Checklist:**
-- Is this a brand new screen from scratch?
-  - If yes: no positioning carry-over rule needed
-- Is this a new screen or new node based on an existing screen/node?
-  - If yes: trigger **Section-Relative Positioning** from [core-rules.md](core-rules.md)
-  - Include in prompt:
-    - parent container ID (Section/Frame)
-    - whether source coordinates are local or page-level
-    - intended relative placement (below, right of, aligned with)
-    - target local offsets
-
-**Prompt insert when triggered:**
-```
+**Brief insert when triggered:**
+```text
 Positioning rule:
 This new screen/node is based on an existing one inside a parent container.
 Use coordinates relative to the same parent container, not absolute page coordinates.
 State the parent container ID and local offsets explicitly before writing.
 ```
 
-**Why:** This rule is not always needed. Making it conditional keeps prompts lean, while still catching the exact case that repeatedly causes misplaced screens.
+**Why:** This catches the repeated failure case of screens landing on the page instead of inside the section.
 
 ---
 
-## 10. Copy + Edit Prompting
+### 6. Copy + Edit
 
-When creating a next step, alternate state, or close variant of an existing screen, prompt for **duplicate first, then edit the delta**.
+**Trigger:** The requested screen is mostly a state/step/variant of an existing screen.
 
-**Pattern:**
-1. identify the source node/frame
-2. duplicate or copy it
-3. place it relative to the same parent container
-4. change only the required delta
-5. validate the result
-
-**Prompt snippet:**
+**Brief insert when triggered:**
 ```text
 This is a state/step variant of an existing screen.
-Do not rebuild from scratch if the shell/layout is already correct.
-Duplicate the source screen, keep it in the same parent container, place it with explicit relative positioning, then edit only the delta.
+Do not rebuild from scratch.
+Duplicate the source screen, keep it in the same parent container, then edit only the delta.
 Preserve working component instances, variables, and auto-layout unless a specific change is required.
 ```
-
-**Delta checklist:**
-- content/text changes
-- state changes (active tab, expanded accordion, selected control)
-- added or removed elements
-- CTA changes
-- small layout adjustments only where needed
 
 **Why:** This keeps good structure intact and reduces regressions from unnecessary rebuilds.
 
 ---
 
-## 11. Error Recovery Framing
+### 7. HTML-to-Figma Framing
 
-When an error occurs, structure the recovery explicitly:
+**Trigger:** The chosen workflow is HTML-to-Figma.
 
-**Pattern:**
-1. "The error says: [exact message]"
-2. "Checking plugin-api-gotchas.md — this matches: [gotcha name]"
-3. "The fix is: [specific code change]"
-4. "Retrying with the fix only, keeping everything else unchanged"
+**Brief insert when triggered:**
+```text
+Treat this output as exploratory, not production-ready.
+Expect cleanup afterward: variable binding, text resize, SVG review, and layout normalization.
+```
 
-**Anti-patterns:**
-- "Let me try a completely different approach" (premature)
-- "I'll rebuild from scratch" (wasteful)
-- "Retrying the same code" (definition of insanity)
+**Why:** HTML-to-Figma is useful for speed, but it should not be mistaken for finished design-system output.
+
+---
+
+### 8. Error Recovery Framing
+
+**Trigger:** A write failed or validation exposed a specific issue.
+
+**Brief insert when triggered:**
+```text
+Read the exact failure first.
+Fix only the identified issue.
+Do not retry the same code blindly.
+Do not rebuild from scratch unless the structure is fundamentally wrong.
+```
+
+**Why:** Recovery should be surgical, not chaotic.
+
+---
+
+## Completion Criteria Blocks
+
+Completion criteria should be chosen from the task ticket and placed into the `DONE WHEN` section of the execution brief.
+
+### 9. Build Completion Criteria
+
+Use when creating a new screen/section.
+
+```text
+DONE WHEN:
+- required nodes exist in the intended parent container
+- required components remain real instances where expected
+- required variables are bound where expected
+- screenshot confirms the intended layout and visual state
+```
+
+---
+
+### 10. Review / Fix Completion Criteria
+
+Use when adjusting an existing design.
+
+```text
+DONE WHEN:
+- the requested issue is actually fixed
+- no placeholder/default content remains in the touched area
+- no new regression was introduced
+- screenshot confirms the corrected result
+```
+
+---
+
+### 11. State Variant Completion Criteria
+
+Use for Copy + Edit / next-step / alternate-state work.
+
+```text
+DONE WHEN:
+- the duplicated screen remains inside the intended parent container
+- only the required delta changed
+- target state matches the spec exactly
+- working component instances and layout structure remain intact
+- screenshot confirms the correct final state
+```
+
+---
+
+### 12. Tokenization Completion Criteria
+
+Use when migrating hardcoded values to variables/tokens.
+
+```text
+DONE WHEN:
+- required fills, borders, and effects are bound to variables
+- hardcoded values targeted by the task are removed
+- metadata/variable checks confirm the bindings
+- screenshot confirms no visual regression
+```
+
+---
+
+## Keep Briefs Lean
+
+Do not stack all patterns into every execution brief.
+
+Bad:
+- one giant blended prompt containing routing logic, every conditional rule, every hard rule, and every review checklist
+
+Good:
+- one clear goal
+- only the 2-4 constraints that matter for this task
+- only the context facts needed for execution
+- only the completion criteria needed for the applicable done gate
+
+The controller should do the selection work. The executor should receive a compact brief.

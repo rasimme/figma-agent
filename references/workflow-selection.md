@@ -52,6 +52,38 @@ This avoids unnecessary rebuilds and preserves working component structure, toke
 
 ---
 
+## Task Ticket Output
+
+Workflow selection should produce a small internal task ticket before execution begins.
+
+This ticket is not user-facing. It is the controller artifact that drives the execution brief and the done gate.
+
+### Required fields
+
+- `workflow` — selected workflow/playbook
+- `execution_mode` — e.g. read-only, rebuild, copy-edit, targeted-fix, tokenization
+- `risks[]` — only the risks that actually matter for this task
+- `validation_checks[]` — only the gates that actually apply to this task
+
+### Example
+
+```text
+workflow: Native Screen Generation
+execution_mode: copy-edit
+risks:
+- section-relative positioning
+- component integrity during duplication
+validation_checks:
+- parent / placement gate
+- component integrity gate
+- state accuracy gate
+- visual confirmation gate
+```
+
+The point is simple: routing should decide not only how to execute, but also what must be proven before the work can be called done.
+
+---
+
 ## Native vs HTML-to-Figma Decision
 
 ### Choose Native When:
