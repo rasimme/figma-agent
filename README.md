@@ -7,7 +7,7 @@
 
 <p align="center">
   <a href="https://github.com/rasimme/figma-agent/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"></a>
-  <a href="https://github.com/rasimme/figma-agent/blob/main/CHANGELOG.md"><img src="https://img.shields.io/badge/version-v0.2.0-blue.svg" alt="Version"></a>
+  <a href="https://github.com/rasimme/figma-agent/blob/main/CHANGELOG.md"><img src="https://img.shields.io/badge/version-v0.3.0-blue.svg" alt="Version"></a>
   <a href="https://clawhub.ai"><img src="https://img.shields.io/badge/ClawHub-skill-purple.svg" alt="ClawHub"></a>
 </p>
 
@@ -55,6 +55,14 @@ The skill is intentionally split into four layers:
 
 This hybrid model keeps inspection fast while preserving a stronger execution path for canvas changes.
 
+### Execution model
+
+The controller should operate in three phases:
+
+1. **Route & Brief** — choose the workflow, identify the actual risks, and produce a lean execution brief
+2. **Execute** — perform the direct read or ACP write/edit task
+3. **Done Gate** — require structural checks first and screenshot confirmation second before reporting success
+
 ---
 
 ## Supported workflows
@@ -79,7 +87,7 @@ This hybrid model keeps inspection fast while preserving a stronger execution pa
 - **Design-system-first** — use local variables, styles, components, and Code Connect before creating anything raw
 - **Component-instance-first** — if a suitable component exists, instantiate it instead of rebuilding it visually
 - **Section-by-section** — build in small validated steps, not giant write calls
-- **Validate after every write** — screenshots and metadata checks are mandatory
+- **Validate after every write** — structural checks first, screenshots second
 
 ---
 

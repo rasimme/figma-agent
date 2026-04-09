@@ -20,6 +20,11 @@ Figma Remote MCP integration for OpenClaw. Reads designs via `figma__*` tools; c
 Seeing or understanding a design? → Direct. Do not start a session.  
 Changing or creating something? → Start a CC session. Follow the matching playbook below.
 
+**Execution model:**
+1. **Route & Brief** — choose the workflow, identify the real risks, and write a lean execution brief
+2. **Execute** — perform the direct read or CC-based write flow
+3. **Done Gate** — do not report success until the applicable structural and visual validation checks pass
+
 ## Workflow Routing
 
 **First:** Determine the user's intent, then follow the matching path.
